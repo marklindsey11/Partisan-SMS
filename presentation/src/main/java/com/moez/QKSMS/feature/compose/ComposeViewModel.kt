@@ -313,15 +313,25 @@ class ComposeViewModel @Inject constructor(
         // Copy the message contents
         view.optionsItemIntent
                 .filter { it == R.id.copy }
-                .withLatestFrom(view.messagesSelectedIntent) { _, messageIds ->
+                .withLatestFrom(view.messagesSelectedIntent, conversation) { _, messageIds, conversation ->
+                    val encryptionKey = conversation.encryptionKey
+                        .takeIf { it.isNotEmpty() }
+                        ?: prefs.globalEncryptionKey.get()
+                            .takeIf { it.isNotEmpty() }
+
                     val messages = messageIds.mapNotNull(messageRepo::getMessage).sortedBy { it.date }
+
+                    fun Message.getDecodedText() = encryptionKey?.let {
+                        PSmsEncryptor().tryDecode(getText(), Base64.decode(encryptionKey, Base64.DEFAULT)).text
+                    } ?: getText()
+
                     val text = when (messages.size) {
-                        1 -> messages.first().getText()
+                        1 -> messages.first().getDecodedText()
                         else -> messages.foldIndexed("") { index, acc, message ->
                             when {
-                                index == 0 -> message.getText()
-                                messages[index - 1].compareSender(message) -> "$acc\n${message.getText()}"
-                                else -> "$acc\n\n${message.getText()}"
+                                index == 0 -> message.getDecodedText()
+                                messages[index - 1].compareSender(message) -> "$acc\n${message.getDecodedText()}"
+                                else -> "$acc\n\n${message.getDecodedText()}"
                             }
                         }
                     }
