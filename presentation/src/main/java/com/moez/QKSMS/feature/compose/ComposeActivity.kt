@@ -57,9 +57,11 @@ import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.util.extensions.setVisible
 import com.moez.QKSMS.common.util.extensions.showKeyboard
+import com.moez.QKSMS.common.widget.KeyInputDialog
 import com.moez.QKSMS.feature.compose.editing.ChipsAdapter
 import com.moez.QKSMS.feature.contacts.ContactsActivity
 import com.moez.QKSMS.model.Attachment
+import com.moez.QKSMS.model.Conversation
 import com.moez.QKSMS.model.Recipient
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
@@ -115,9 +117,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val changeSimIntent by lazy { sim.clicks() }
     override val scheduleCancelIntent by lazy { scheduledCancel.clicks() }
     override val sendIntent by lazy { send.clicks() }
-    override val sendRawIntent by lazy { send.longClicks() }
     override val viewQksmsPlusIntent: Subject<Unit> = PublishSubject.create()
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
+    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
 
     private val viewModel by lazy { ViewModelProviders.of(this, viewModelFactory)[ComposeViewModel::class.java] }
 
@@ -212,6 +214,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.clear)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
+        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled && state.encrypted
+        toolbar.menu.findItem(R.id.raw)?.isVisible = !(state.encryptionEnabled && state.encrypted)
 
         chipsAdapter.data = state.selectedChips
 
@@ -408,4 +412,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun onBackPressed() = backPressedIntent.onNext(Unit)
 
+    override fun showEncryptionKeyDialog(conversation: Conversation) {
+        KeyInputDialog(this, getString(R.string.conversation_encryption_key_title)) { key ->
+            setEncryptionKeyIntent.onNext(Pair(conversation, key))
+        }.show()
+    }
 }

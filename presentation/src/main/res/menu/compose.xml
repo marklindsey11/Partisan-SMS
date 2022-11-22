@@ -35,6 +35,20 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/encrypted"
+        android:icon="@drawable/ic_lock_24dp"
+        android:title="@string/compose_menu_encrypted"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/raw"
+        android:icon="@drawable/ic_lock_open_24dp"
+        android:title="@string/compose_menu_raw"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/info"
         android:icon="@drawable/ic_more_vert_black_24dp"
         android:title="@string/menu_info"

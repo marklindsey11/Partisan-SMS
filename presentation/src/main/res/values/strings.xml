@@ -120,6 +120,8 @@
     <string name="compose_menu_previous">Previous</string>
     <string name="compose_menu_next">Next</string>
     <string name="compose_menu_clear">Clear</string>
+    <string name="compose_menu_encrypted">Encrypted</string>
+    <string name="compose_menu_raw">Raw</string>
     <string name="compose_details_title">Message details</string>
     <string name="compose_details_type">Type: %s</string>
     <string name="compose_details_from">From: %s</string>
