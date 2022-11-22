@@ -107,6 +107,8 @@
     <string name="compose_menu_previous">قبلی</string>
     <string name="compose_menu_next">بعدی</string>
     <string name="compose_menu_clear">پاک‌سازی</string>
+    <string name="compose_menu_encrypted">رمزگذاری شده</string>
+    <string name="compose_menu_raw">رمزگذاری نشده</string>
     <string name="compose_details_title">جزئیات پیام</string>
     <string name="compose_details_type">نوع: %s</string>
     <string name="compose_details_from">از: %s</string>

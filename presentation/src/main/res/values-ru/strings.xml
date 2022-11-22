@@ -108,6 +108,8 @@
     <string name="compose_menu_previous">Назад</string>
     <string name="compose_menu_next">Вперёд</string>
     <string name="compose_menu_clear">Очистить</string>
+    <string name="compose_menu_encrypted">Зашифровано</string>
+    <string name="compose_menu_raw">Не зашифровано</string>
     <string name="compose_details_title">Подробности сообщения</string>
     <string name="compose_details_type">Тип: %s</string>
     <string name="compose_details_from">От: %s</string>
