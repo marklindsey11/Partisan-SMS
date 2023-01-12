@@ -432,6 +432,30 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun setEncryptionEnabled(threadId: Long) {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .equalTo(Conversation::id.name, threadId)
+                .findFirst()
+
+            realm.executeTransaction {
+                conversation?.encryptionEnabled = true
+            }
+        }
+    }
+
+    override fun setEncryptionDisabled(threadId: Long) {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .equalTo(Conversation::id.name, threadId)
+                .findFirst()
+
+            realm.executeTransaction {
+                conversation?.encryptionEnabled = false
+            }
+        }
+    }
+
     override fun setEncodingScheme(threadId: Long, encodingSchemeId: Int) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)

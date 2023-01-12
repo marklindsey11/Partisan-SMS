@@ -42,8 +42,8 @@ open class Conversation(
     var encodingSchemeId: Int = SCHEME_NOT_DEF,
     var deleteEncryptedAfter: Int = 0,
     var deleteReceivedAfter: Int = 0,
-    var deleteSentAfter: Int = 0
-
+    var deleteSentAfter: Int = 0,
+    var encryptionEnabled: Boolean = false
 
 ) : RealmObject() {
 

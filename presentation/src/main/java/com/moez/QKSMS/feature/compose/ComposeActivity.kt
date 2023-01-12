@@ -67,6 +67,8 @@ import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.compose_activity.*
@@ -86,12 +88,18 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         private const val CameraDestinationKey = "camera_destination"
     }
 
-    @Inject lateinit var attachmentAdapter: AttachmentAdapter
-    @Inject lateinit var chipsAdapter: ChipsAdapter
-    @Inject lateinit var dateFormatter: DateFormatter
-    @Inject lateinit var messageAdapter: MessagesAdapter
-    @Inject lateinit var navigator: Navigator
-    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var attachmentAdapter: AttachmentAdapter
+    @Inject
+    lateinit var chipsAdapter: ChipsAdapter
+    @Inject
+    lateinit var dateFormatter: DateFormatter
+    @Inject
+    lateinit var messageAdapter: MessagesAdapter
+    @Inject
+    lateinit var navigator: Navigator
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override val activityVisibleIntent: Subject<Boolean> = PublishSubject.create()
     override val chipsSelectedIntent: Subject<HashMap<String, String?>> = PublishSubject.create()
@@ -105,11 +113,26 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val cancelSendingIntent: Subject<Long> by lazy { messageAdapter.cancelSending }
     override val attachmentDeletedIntent: Subject<Attachment> by lazy { attachmentAdapter.attachmentDeleted }
     override val textChangedIntent by lazy { message.textChanges() }
-    override val attachIntent by lazy { Observable.merge(attach.clicks(), attachingBackground.clicks()) }
+    override val attachIntent by lazy {
+        Observable.merge(
+            attach.clicks(),
+            attachingBackground.clicks()
+        )
+    }
     override val cameraIntent by lazy { Observable.merge(camera.clicks(), cameraLabel.clicks()) }
     override val galleryIntent by lazy { Observable.merge(gallery.clicks(), galleryLabel.clicks()) }
-    override val scheduleIntent by lazy { Observable.merge(schedule.clicks(), scheduleLabel.clicks()) }
-    override val attachContactIntent by lazy { Observable.merge(contact.clicks(), contactLabel.clicks()) }
+    override val scheduleIntent by lazy {
+        Observable.merge(
+            schedule.clicks(),
+            scheduleLabel.clicks()
+        )
+    }
+    override val attachContactIntent by lazy {
+        Observable.merge(
+            contact.clicks(),
+            contactLabel.clicks()
+        )
+    }
     override val attachmentSelectedIntent: Subject<Uri> = PublishSubject.create()
     override val contactSelectedIntent: Subject<Uri> = PublishSubject.create()
     override val inputContentIntent by lazy { message.inputContentSelected }
@@ -119,9 +142,16 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val sendIntent by lazy { send.clicks() }
     override val viewQksmsPlusIntent: Subject<Unit> = PublishSubject.create()
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
-    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
+    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> =
+        PublishSubject.create()
+    private val conversation: Subject<Conversation> = BehaviorSubject.create()
 
-    private val viewModel by lazy { ViewModelProviders.of(this, viewModelFactory)[ComposeViewModel::class.java] }
+    private val viewModel by lazy {
+        ViewModelProviders.of(
+            this,
+            viewModelFactory
+        )[ComposeViewModel::class.java]
+    }
 
     private var cameraDestination: Uri? = null
 
@@ -214,8 +244,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.clear)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
-        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled && state.encrypted
-        toolbar.menu.findItem(R.id.raw)?.isVisible = !(state.encryptionEnabled && state.encrypted)
+        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled
+        toolbar.menu.findItem(R.id.raw)?.isVisible = !state.encryptionEnabled
 
         chipsAdapter.data = state.selectedChips
 
@@ -225,6 +255,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         sendAsGroupSwitch.isChecked = state.sendAsGroup
 
         messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
+
         messageAdapter.data = state.messages
         messageAdapter.highlight = state.searchSelectionId
 

@@ -301,9 +301,9 @@ class MessagesAdapter @Inject constructor(
             false -> TextViewStyler.SIZE_PRIMARY
         })
 
-        val decryptedMessage = if (conversation != null && conversation!!.encryptionKey.isNotEmpty()) {
+        val decryptedMessage = if (conversation != null && conversation!!.encryptionKey.isNotEmpty() && conversation!!.encryptionEnabled) {
             PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(conversation!!.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
+        } else if (prefs.globalEncryptionKey.get().isNotEmpty() && conversation!!.encryptionEnabled) {
             PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
         } else {
             PSmsMessage(messageText.toString())

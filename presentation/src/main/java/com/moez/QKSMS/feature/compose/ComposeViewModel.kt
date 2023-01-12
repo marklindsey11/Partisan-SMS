@@ -65,12 +65,16 @@ import com.uber.autodispose.autoDisposable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
+import io.reactivex.rxkotlin.combineLatest
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -115,6 +119,7 @@ class ComposeViewModel @Inject constructor(
     private val selectedChips: Subject<List<Recipient>> = BehaviorSubject.createDefault(listOf())
     private val searchResults: Subject<List<Message>> = BehaviorSubject.create()
     private val searchSelection: Subject<Long> = BehaviorSubject.createDefault(-1)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private var shouldShowContacts = threadId == 0L && addresses.isEmpty()
 
@@ -222,9 +227,14 @@ class ComposeViewModel @Inject constructor(
 
         val globalKeyObservable = prefs.globalEncryptionKey.asObservable()
         val conversationKeyObservable = conversation.map { conversation -> conversation.encryptionKey }
-        disposables += Observables.combineLatest(globalKeyObservable, conversationKeyObservable)
-                .subscribe { (globalKey, conversationKey) ->
-                    newState { copy(encrypted = globalKey.isNotEmpty() || conversationKey.isNotEmpty()) }
+        val encryptionEnabledObservable = conversation.map { conversation -> conversation.encryptionEnabled }
+        disposables += Observables.combineLatest(globalKeyObservable, conversationKeyObservable, encryptionEnabledObservable)
+                .subscribe { (globalKey, conversationKey, encryptionEnabled) ->
+                    newState { copy(
+                        encrypted = encryptionEnabled,
+//                        encrypted = (globalKey.isNotEmpty() || conversationKey.isNotEmpty()),
+                        encryptionEnabled = encryptionEnabled
+                    ) }
                 }
 
         val latestSubId = messages
@@ -774,21 +784,39 @@ class ComposeViewModel @Inject constructor(
         // Enable encryption
         view.optionsItemIntent
                 .filter { it == R.id.raw }
-                .withLatestFrom(conversation) { _, conversation -> conversation }
-                .filter { conversation ->
+                .withLatestFrom(conversation) { _, conversation ->
                     (conversation.encryptionKey.isNotEmpty()
                             || prefs.globalEncryptionKey.get().isNotEmpty()).also {
                         if (!it) view.showEncryptionKeyDialog(conversation)
+                        scope.launch {
+                            conversationRepo.setEncryptionEnabled(threadId)
+                            newState { copy(
+                                encryptionEnabled = true,
+                                encrypted = true,
+                                messages = Pair(conversationRepo.getConversation(threadId)!!, messageRepo.getMessages(threadId))
+                            ) }
+                        }
                     }
                 }
                 .autoDisposable(view.scope())
-                .subscribe { newState { copy(encryptionEnabled = true) } }
+                .subscribe()
 
         // Disable encryption
         view.optionsItemIntent
                 .filter { it == R.id.encrypted }
-                .autoDisposable(view.scope())
-                .subscribe { newState { copy(encryptionEnabled = false) } }
+                .withLatestFrom(conversation) { _, conversation ->
+                    scope.launch {
+                        conversationRepo.setEncryptionDisabled(threadId)
+                        newState { copy(
+                            encryptionEnabled = false,
+                            encrypted = false,
+                            messages = Pair(conversationRepo.getConversation(threadId)!!, messageRepo.getMessages(threadId))
+                        ) }
+                    }
+
+                }
+            .autoDisposable(view.scope())
+                .subscribe()
 
         view.setEncryptionKeyIntent
                 .map { SetEncryptionKey.Params(it.first.id, it.second) }

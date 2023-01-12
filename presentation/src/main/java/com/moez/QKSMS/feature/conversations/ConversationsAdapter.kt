@@ -121,9 +121,9 @@ class ConversationsAdapter @Inject constructor(
         }
         holder.date.text = conversation.date.takeIf { it > 0 }?.let(dateFormatter::getConversationTimestamp)
 
-        val snippetMessage = if (conversation.encryptionKey.isNotEmpty()) {
+        val snippetMessage = if (conversation.encryptionKey.isNotEmpty() && conversation.encryptionEnabled) {
             PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
+        } else if (prefs.globalEncryptionKey.get().isNotEmpty() && conversation.encryptionEnabled) {
             PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
         } else {
             PSmsMessage(conversation.snippet ?: "")

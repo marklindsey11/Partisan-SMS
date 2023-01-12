@@ -93,6 +93,10 @@ interface ConversationRepository {
 
     fun setEncryptionKey(threadId: Long, encryptionKey: String)
 
+    fun setEncryptionEnabled(threadId: Long)
+
+    fun setEncryptionDisabled(threadId: Long)
+
     fun setEncodingScheme(threadId: Long, encodingSchemeId: Int)
 
     fun setDeleteEncryptedAfter(threadId: Long, durationId: Int)
