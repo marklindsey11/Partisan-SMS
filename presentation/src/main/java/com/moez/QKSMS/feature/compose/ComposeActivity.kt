@@ -49,7 +49,6 @@ import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.base.QkThemedActivity
 import com.moez.QKSMS.common.util.DateFormatter
 import com.moez.QKSMS.common.util.extensions.autoScrollToStart
-import com.moez.QKSMS.common.util.extensions.dismissKeyboard
 import com.moez.QKSMS.common.util.extensions.hideKeyboard
 import com.moez.QKSMS.common.util.extensions.resolveThemeColor
 import com.moez.QKSMS.common.util.extensions.scrapViews
@@ -67,8 +66,6 @@ import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import io.reactivex.Observable
-import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.compose_activity.*
@@ -88,18 +85,12 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         private const val CameraDestinationKey = "camera_destination"
     }
 
-    @Inject
-    lateinit var attachmentAdapter: AttachmentAdapter
-    @Inject
-    lateinit var chipsAdapter: ChipsAdapter
-    @Inject
-    lateinit var dateFormatter: DateFormatter
-    @Inject
-    lateinit var messageAdapter: MessagesAdapter
-    @Inject
-    lateinit var navigator: Navigator
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var attachmentAdapter: AttachmentAdapter
+    @Inject lateinit var chipsAdapter: ChipsAdapter
+    @Inject lateinit var dateFormatter: DateFormatter
+    @Inject lateinit var messageAdapter: MessagesAdapter
+    @Inject lateinit var navigator: Navigator
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override val activityVisibleIntent: Subject<Boolean> = PublishSubject.create()
     override val chipsSelectedIntent: Subject<HashMap<String, String?>> = PublishSubject.create()
@@ -113,26 +104,11 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val cancelSendingIntent: Subject<Long> by lazy { messageAdapter.cancelSending }
     override val attachmentDeletedIntent: Subject<Attachment> by lazy { attachmentAdapter.attachmentDeleted }
     override val textChangedIntent by lazy { message.textChanges() }
-    override val attachIntent by lazy {
-        Observable.merge(
-            attach.clicks(),
-            attachingBackground.clicks()
-        )
-    }
+    override val attachIntent by lazy { Observable.merge(attach.clicks(), attachingBackground.clicks()) }
     override val cameraIntent by lazy { Observable.merge(camera.clicks(), cameraLabel.clicks()) }
     override val galleryIntent by lazy { Observable.merge(gallery.clicks(), galleryLabel.clicks()) }
-    override val scheduleIntent by lazy {
-        Observable.merge(
-            schedule.clicks(),
-            scheduleLabel.clicks()
-        )
-    }
-    override val attachContactIntent by lazy {
-        Observable.merge(
-            contact.clicks(),
-            contactLabel.clicks()
-        )
-    }
+    override val scheduleIntent by lazy { Observable.merge(schedule.clicks(), scheduleLabel.clicks()) }
+    override val attachContactIntent by lazy { Observable.merge(contact.clicks(), contactLabel.clicks()) }
     override val attachmentSelectedIntent: Subject<Uri> = PublishSubject.create()
     override val contactSelectedIntent: Subject<Uri> = PublishSubject.create()
     override val inputContentIntent by lazy { message.inputContentSelected }
@@ -142,16 +118,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val sendIntent by lazy { send.clicks() }
     override val viewQksmsPlusIntent: Subject<Unit> = PublishSubject.create()
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
-    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> =
-        PublishSubject.create()
-    private val conversation: Subject<Conversation> = BehaviorSubject.create()
+    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(
-            this,
-            viewModelFactory
-        )[ComposeViewModel::class.java]
-    }
+    private val viewModel by lazy {ViewModelProviders.of(this,viewModelFactory)[ComposeViewModel::class.java]}
 
     private var cameraDestination: Uri? = null
 
@@ -253,7 +222,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
         sendAsGroup.setVisible(state.editingMode && state.selectedChips.size >= 2)
         sendAsGroupSwitch.isChecked = state.sendAsGroup
-
         messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
 
         messageAdapter.data = state.messages

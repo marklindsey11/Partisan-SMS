@@ -248,7 +248,7 @@ class QkRealmMigration @Inject constructor(
             realm.schema.get("Conversation")
                 ?.addField("encryptionEnabled", Boolean::class.java)
                 ?.transform { part ->
-                    part.setBoolean("encodingSchemeId", false)
+                    part.setBoolean("encryptionEnabled", false)
                 }
 
             version++

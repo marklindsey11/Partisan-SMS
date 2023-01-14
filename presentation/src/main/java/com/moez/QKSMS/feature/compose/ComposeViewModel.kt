@@ -816,7 +816,7 @@ class ComposeViewModel @Inject constructor(
 
                 }
             .autoDisposable(view.scope())
-                .subscribe()
+            .subscribe()
 
         view.setEncryptionKeyIntent
                 .map { SetEncryptionKey.Params(it.first.id, it.second) }
