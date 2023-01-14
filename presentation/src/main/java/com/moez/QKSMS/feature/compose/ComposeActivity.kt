@@ -49,6 +49,7 @@ import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.base.QkThemedActivity
 import com.moez.QKSMS.common.util.DateFormatter
 import com.moez.QKSMS.common.util.extensions.autoScrollToStart
+import com.moez.QKSMS.common.util.extensions.dismissKeyboard
 import com.moez.QKSMS.common.util.extensions.hideKeyboard
 import com.moez.QKSMS.common.util.extensions.resolveThemeColor
 import com.moez.QKSMS.common.util.extensions.scrapViews
@@ -120,7 +121,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
     override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
 
-    private val viewModel by lazy {ViewModelProviders.of(this,viewModelFactory)[ComposeViewModel::class.java]}
+    private val viewModel by lazy { ViewModelProviders.of(this, viewModelFactory)[ComposeViewModel::class.java] }
 
     private var cameraDestination: Uri? = null
 
@@ -151,12 +152,12 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         message.supportsInputContent = true
 
         theme
-                .doOnNext { loading.setTint(it.theme) }
-                .doOnNext { attach.setBackgroundTint(it.theme) }
-                .doOnNext { attach.setTint(it.textPrimary) }
-                .doOnNext { messageAdapter.theme = it }
-                .autoDisposable(scope())
-                .subscribe()
+            .doOnNext { loading.setTint(it.theme) }
+            .doOnNext { attach.setBackgroundTint(it.theme) }
+            .doOnNext { attach.setTint(it.textPrimary) }
+            .doOnNext { messageAdapter.theme = it }
+            .autoDisposable(scope())
+            .subscribe()
 
         window.callback = ComposeWindowCallback(window.callback, this)
 
@@ -192,7 +193,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
         toolbarSubtitle.setVisible(state.query.isNotEmpty())
         toolbarSubtitle.text = getString(R.string.compose_subtitle_results, state.searchSelectionPosition,
-                state.searchResults)
+            state.searchResults)
 
         toolbarTitle.setVisible(!state.editingMode)
         chips.setVisible(state.editingMode)
@@ -213,8 +214,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.clear)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
-        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled
-        toolbar.menu.findItem(R.id.raw)?.isVisible = !state.encryptionEnabled
+        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled && state.encrypted
+        toolbar.menu.findItem(R.id.raw)?.isVisible = !(state.encryptionEnabled && state.encrypted)
 
         chipsAdapter.data = state.selectedChips
 
@@ -222,8 +223,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
         sendAsGroup.setVisible(state.editingMode && state.selectedChips.size >= 2)
         sendAsGroupSwitch.isChecked = state.sendAsGroup
-        messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
 
+        messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
         messageAdapter.data = state.messages
         messageAdapter.highlight = state.searchSelectionId
 
@@ -257,10 +258,10 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun showDetails(details: String) {
         AlertDialog.Builder(this)
-                .setTitle(R.string.compose_details_title)
-                .setMessage(details)
-                .setCancelable(true)
-                .show()
+            .setTitle(R.string.compose_details_title)
+            .setMessage(details)
+            .setCancelable(true)
+            .show()
     }
 
     override fun requestDefaultSms() {
@@ -273,8 +274,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestSmsPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.READ_SMS,
-                Manifest.permission.SEND_SMS), 0)
+            Manifest.permission.READ_SMS,
+            Manifest.permission.SEND_SMS), 0)
     }
 
     override fun requestDatePicker() {
@@ -288,7 +289,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 calendar.set(Calendar.MINUTE, minute)
                 scheduleSelectedIntent.onNext(calendar.timeInMillis)
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(this))
-                    .show()
+                .show()
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
 
         // On some devices, the keyboard can cover the date picker
@@ -297,7 +298,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestContact() {
         val intent = Intent(Intent.ACTION_PICK)
-                .setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
+            .setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
 
         startActivityForResult(Intent.createChooser(intent, null), AttachContactRequestCode)
     }
@@ -306,8 +307,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         message.hideKeyboard()
         val serialized = HashMap(chips.associate { chip -> chip.address to chip.contact?.lookupKey })
         val intent = Intent(this, ContactsActivity::class.java)
-                .putExtra(ContactsActivity.SharingKey, sharing)
-                .putExtra(ContactsActivity.ChipsKey, serialized)
+            .putExtra(ContactsActivity.SharingKey, sharing)
+            .putExtra(ContactsActivity.ChipsKey, serialized)
         startActivityForResult(intent, SelectContactRequestCode)
     }
 
@@ -323,21 +324,21 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestCamera() {
         cameraDestination = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                .let { timestamp -> ContentValues().apply { put(MediaStore.Images.Media.TITLE, timestamp) } }
-                .let { cv -> contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv) }
+            .let { timestamp -> ContentValues().apply { put(MediaStore.Images.Media.TITLE, timestamp) } }
+            .let { cv -> contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv) }
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                .putExtra(MediaStore.EXTRA_OUTPUT, cameraDestination)
+            .putExtra(MediaStore.EXTRA_OUTPUT, cameraDestination)
         startActivityForResult(Intent.createChooser(intent, null), TakePhotoRequestCode)
     }
 
     override fun requestGallery() {
         val intent = Intent(Intent.ACTION_PICK)
-                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                .putExtra(Intent.EXTRA_LOCAL_ONLY, false)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .setType("image/*")
+            .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            .putExtra(Intent.EXTRA_LOCAL_ONLY, false)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .setType("image/*")
         startActivityForResult(Intent.createChooser(intent, null), AttachPhotoRequestCode)
     }
 
@@ -348,9 +349,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun scrollToMessage(id: Long) {
         messageAdapter.data?.second
-                ?.indexOfLast { message -> message.id == id }
-                ?.takeIf { position -> position != -1 }
-                ?.let(messageList::scrollToPosition)
+            ?.indexOfLast { message -> message.id == id }
+            ?.takeIf { position -> position != -1 }
+            ?.let(messageList::scrollToPosition)
     }
 
     override fun showQksmsPlusSnackbar(message: Int) {
@@ -379,18 +380,18 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         when {
             requestCode == SelectContactRequestCode -> {
                 chipsSelectedIntent.onNext(data?.getSerializableExtra(ContactsActivity.ChipsKey)
-                        ?.let { serializable -> serializable as? HashMap<String, String?> }
-                        ?: hashMapOf())
+                    ?.let { serializable -> serializable as? HashMap<String, String?> }
+                    ?: hashMapOf())
             }
             requestCode == TakePhotoRequestCode && resultCode == Activity.RESULT_OK -> {
                 cameraDestination?.let(attachmentSelectedIntent::onNext)
             }
             requestCode == AttachPhotoRequestCode && resultCode == Activity.RESULT_OK -> {
                 data?.clipData?.itemCount
-                        ?.let { count -> 0 until count }
-                        ?.mapNotNull { i -> data.clipData?.getItemAt(i)?.uri }
-                        ?.forEach(attachmentSelectedIntent::onNext)
-                        ?: data?.data?.let(attachmentSelectedIntent::onNext)
+                    ?.let { count -> 0 until count }
+                    ?.mapNotNull { i -> data.clipData?.getItemAt(i)?.uri }
+                    ?.forEach(attachmentSelectedIntent::onNext)
+                    ?: data?.data?.let(attachmentSelectedIntent::onNext)
             }
             requestCode == AttachContactRequestCode && resultCode == Activity.RESULT_OK -> {
                 data?.data?.let(contactSelectedIntent::onNext)

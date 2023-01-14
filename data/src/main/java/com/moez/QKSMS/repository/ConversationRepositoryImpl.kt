@@ -27,6 +27,7 @@ import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.extensions.map
 import com.moez.QKSMS.extensions.removeAccents
 import com.moez.QKSMS.filter.ConversationFilter
+import com.moez.QKSMS.interactor.SetEncryptionEnabled
 import com.moez.QKSMS.mapper.CursorToConversation
 import com.moez.QKSMS.mapper.CursorToRecipient
 import com.moez.QKSMS.model.Contact
@@ -432,26 +433,14 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun setEncryptionEnabled(threadId: Long) {
+    override fun setEncryptionEnabled(threadId: Long, enabled: Boolean) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)
                 .equalTo(Conversation::id.name, threadId)
                 .findFirst()
 
             realm.executeTransaction {
-                conversation?.encryptionEnabled = true
-            }
-        }
-    }
-
-    override fun setEncryptionDisabled(threadId: Long) {
-        Realm.getDefaultInstance().use { realm ->
-            val conversation = realm.where(Conversation::class.java)
-                .equalTo(Conversation::id.name, threadId)
-                .findFirst()
-
-            realm.executeTransaction {
-                conversation?.encryptionEnabled = false
+                conversation?.encryptionEnabled = enabled
             }
         }
     }

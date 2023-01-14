@@ -24,6 +24,7 @@ import android.os.Vibrator
 import android.provider.ContactsContract
 import android.telephony.SmsMessage
 import android.util.Base64
+import android.util.Log
 import androidx.core.content.getSystemService
 import by.cyberpartisan.psms.PSmsEncryptor
 import com.moez.QKSMS.R
@@ -38,13 +39,7 @@ import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.extensions.isImage
 import com.moez.QKSMS.extensions.isVideo
 import com.moez.QKSMS.extensions.mapNotNull
-import com.moez.QKSMS.interactor.AddScheduledMessage
-import com.moez.QKSMS.interactor.CancelDelayedMessage
-import com.moez.QKSMS.interactor.DeleteMessages
-import com.moez.QKSMS.interactor.MarkRead
-import com.moez.QKSMS.interactor.RetrySending
-import com.moez.QKSMS.interactor.SendMessage
-import com.moez.QKSMS.interactor.SetEncryptionKey
+import com.moez.QKSMS.interactor.*
 import com.moez.QKSMS.manager.ActiveConversationManager
 import com.moez.QKSMS.manager.BillingManager
 import com.moez.QKSMS.manager.PermissionManager
@@ -106,6 +101,7 @@ class ComposeViewModel @Inject constructor(
     private val sendMessage: SendMessage,
     private val subscriptionManager: SubscriptionManagerCompat,
     private val setEncryptionKey: SetEncryptionKey,
+    private val setEncryptionEnabled: SetEncryptionEnabled
 ) : QkViewModel<ComposeView, ComposeState>(ComposeState(
         editingMode = threadId == 0L && addresses.isEmpty(),
         threadId = threadId,
@@ -119,7 +115,6 @@ class ComposeViewModel @Inject constructor(
     private val selectedChips: Subject<List<Recipient>> = BehaviorSubject.createDefault(listOf())
     private val searchResults: Subject<List<Message>> = BehaviorSubject.create()
     private val searchSelection: Subject<Long> = BehaviorSubject.createDefault(-1)
-    private val scope = CoroutineScope(Dispatchers.IO)
 
     private var shouldShowContacts = threadId == 0L && addresses.isEmpty()
 
@@ -785,38 +780,38 @@ class ComposeViewModel @Inject constructor(
         view.optionsItemIntent
                 .filter { it == R.id.raw }
                 .withLatestFrom(conversation) { _, conversation ->
-                    (conversation.encryptionKey.isNotEmpty()
-                            || prefs.globalEncryptionKey.get().isNotEmpty()).also {
+                    (conversation.encryptionKey.isNotEmpty() || prefs.globalEncryptionKey.get().isNotEmpty()).also {
                         if (!it) view.showEncryptionKeyDialog(conversation)
-                        scope.launch {
-                            conversationRepo.setEncryptionEnabled(threadId)
-                            newState { copy(
-                                encryptionEnabled = true,
-                                encrypted = true,
-                                messages = Pair(conversationRepo.getConversation(threadId)!!, messageRepo.getMessages(threadId))
-                            ) }
-                        }
                     }
+                    SetEncryptionEnabled.Params(conversation.id, true)
                 }
                 .autoDisposable(view.scope())
-                .subscribe()
+                .subscribe {
+                    setEncryptionEnabled.execute(it) {
+                        newState { copy(
+                            encryptionEnabled = true,
+                            encrypted = true,
+                            messages = Pair(conversationRepo.getConversation(it.threadId)!!, messageRepo.getMessages(it.threadId))
+                        ) }
+                    }
+                }
 
         // Disable encryption
         view.optionsItemIntent
-                .filter { it == R.id.encrypted }
-                .withLatestFrom(conversation) { _, conversation ->
-                    scope.launch {
-                        conversationRepo.setEncryptionDisabled(threadId)
-                        newState { copy(
-                            encryptionEnabled = false,
-                            encrypted = false,
-                            messages = Pair(conversationRepo.getConversation(threadId)!!, messageRepo.getMessages(threadId))
-                        ) }
-                    }
-
-                }
+            .filter { it == R.id.encrypted }
+            .withLatestFrom(conversation) { _, conversation ->
+                SetEncryptionEnabled.Params(conversation.id, false)
+            }
             .autoDisposable(view.scope())
-            .subscribe()
+            .subscribe{
+                setEncryptionEnabled.execute(it) {
+                    newState { copy(
+                        encryptionEnabled = false,
+                        encrypted = false,
+                        messages = Pair(conversationRepo.getConversation(it.threadId)!!, messageRepo.getMessages(it.threadId))
+                    ) }
+                }
+            }
 
         view.setEncryptionKeyIntent
                 .map { SetEncryptionKey.Params(it.first.id, it.second) }
