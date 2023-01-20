@@ -343,7 +343,7 @@ class MainActivity : QkThemedActivity(), MainView {
     override fun onResume() {
         super.onResume()
         activityResumedIntent.onNext(true)
-        showGenerateKeyIntent.onNext(prefs.globalEncryptionKey.get().isEmpty())
+//        showGenerateKeyIntent.onNext(prefs.globalEncryptionKey.get().isEmpty())
     }
 
     override fun onPause() {
