@@ -2,27 +2,22 @@ package com.moez.QKSMS.feature.keyssettings
 
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.base.QkPresenter
-import com.moez.QKSMS.util.Preferences
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
-import io.reactivex.rxkotlin.plusAssign
 import javax.inject.Inject
 
-class KeysSettingsPresenter @Inject constructor(
-    prefs: Preferences
-) : QkPresenter<KeysSettingsView, KeysSettingsState>(
-    KeysSettingsState()
-) {
-
-    init {
-        disposables += prefs.globalEncryptionKey.asObservable()
-            .subscribe { newState { copy(key = it) } }
-        disposables += prefs.encodingScheme.asObservable()
-            .subscribe { newState { copy(encodingScheme = it) } }
-    }
+class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView, KeysSettingsState>(KeysSettingsState()) {
 
     fun setKeyEnabled(state: Boolean) {
         newState { copy(keyEnabled = state) }
+    }
+
+    fun setKey(key: String) {
+        newState { copy(key = key) }
+    }
+
+    fun setEncodingScheme(scheme: Int) {
+        newState { copy(encodingScheme = scheme) }
     }
 
     override fun bindIntents(view: KeysSettingsView) {
@@ -57,7 +52,8 @@ class KeysSettingsPresenter @Inject constructor(
                         newState { copy(
                             keySettingsIsShown = false,
                             resetCheckIsShown = false,
-                            keyEnabled = false
+                            keyEnabled = false,
+                            key = ""
                         ) }
                     }
                 }
@@ -69,7 +65,10 @@ class KeysSettingsPresenter @Inject constructor(
                 when (it.id) {
                     R.id.setGlobalKey -> {
                         view.setKey()
-                        newState { copy(keySettingsIsShown = false) }
+                        newState { copy(
+                            keySettingsIsShown = false,
+                            keyEnabled = true,
+                        ) }
                     }
                 }
             }

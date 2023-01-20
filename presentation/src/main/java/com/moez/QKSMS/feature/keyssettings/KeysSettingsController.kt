@@ -40,6 +40,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     @Inject lateinit var prefs: Preferences
     @Inject lateinit var conversationsRepo: ConversationRepository
     @Inject lateinit var qrCodeWriter: QRCodeWriter
+
     @Inject override lateinit var presenter: KeysSettingsPresenter
 
     private lateinit var generatedKey: String
@@ -54,9 +55,16 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         threadId = activity.intent.getLongExtra("threadId", -1)
-        val keyIsSet = if(threadId == -1L) prefs.globalEncryptionKey.get().isNotBlank()
-        else conversationsRepo.getConversation(threadId)?.encryptionEnabled ?: false
-        presenter.setKeyEnabled(keyIsSet)
+
+        if(threadId == -1L) {
+            presenter.setKeyEnabled(prefs.globalEncryptionKey.get().isNotBlank())
+            presenter.setKey(prefs.globalEncryptionKey.get())
+            presenter.setEncodingScheme(prefs.encodingScheme.get())
+        } else {
+            presenter.setKeyEnabled(conversationsRepo.getConversation(threadId)?.encryptionEnabled ?: false)
+            presenter.setKey(conversationsRepo.getConversation(threadId)?.encryptionKey ?: "")
+            presenter.setEncodingScheme(conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: prefs.encodingScheme.get())
+        }
     }
 
     override fun preferenceClicks(): Observable<PreferenceView> = (0 until preferences.childCount)
@@ -155,11 +163,14 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun setKey() {
         if(validate(field.text.toString())) {
-            if(threadId == -1L) prefs.globalEncryptionKey.set(field.text.toString())
+            if(threadId == -1L) {
+                prefs.globalEncryptionKey.set(field.text.toString())
+            }
             else {
                 conversationsRepo.setEncryptionKey(threadId, field.text.toString())
                 conversationsRepo.setEncryptionEnabled(threadId, true)
             }
+            presenter.setKey(field.text.toString())
             copyKey()
         } else {
             Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
