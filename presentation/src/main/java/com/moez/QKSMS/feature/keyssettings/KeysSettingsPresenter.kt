@@ -11,7 +11,7 @@ import javax.inject.Inject
 class KeysSettingsPresenter @Inject constructor(
     prefs: Preferences
 ) : QkPresenter<KeysSettingsView, KeysSettingsState>(
-    KeysSettingsState(keyEnabled = prefs.globalEncryptionKey.get().isNotBlank())
+    KeysSettingsState()
 ) {
 
     init {

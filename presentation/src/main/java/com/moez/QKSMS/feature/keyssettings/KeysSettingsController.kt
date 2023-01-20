@@ -54,7 +54,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         threadId = activity.intent.getLongExtra("threadId", -1)
-        val keyIsSet = if(threadId == -1L) !prefs.globalEncryptionKey.get().isNullOrBlank()
+        val keyIsSet = if(threadId == -1L) prefs.globalEncryptionKey.get().isNotBlank()
         else conversationsRepo.getConversation(threadId)?.encryptionEnabled ?: false
         presenter.setKeyEnabled(keyIsSet)
     }
