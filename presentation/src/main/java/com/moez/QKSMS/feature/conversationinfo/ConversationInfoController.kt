@@ -154,9 +154,10 @@ class ConversationInfoController(
     }
 
     override fun showEncryptionKeyDialog(conversation: Conversation) {
-        KeyInputDialog(activity!!, context.getString(R.string.conversation_encryption_key_title)) { key ->
-            setEncryptionKey.execute(SetEncryptionKey.Params(conversation.id, key))
-        }.show()
+//        KeyInputDialog(activity!!, context.getString(R.string.conversation_encryption_key_title)) { key ->
+//            setEncryptionKey.execute(SetEncryptionKey.Params(conversation.id, key))
+//        }.show()
+        navigator.showConversationKeySettings(conversation.id)
     }
 
     override fun showDeleteEncryptedAfterDialog(conversation: Conversation) = adapter.deleteEncryptedAfterDialog.show(activity!!)

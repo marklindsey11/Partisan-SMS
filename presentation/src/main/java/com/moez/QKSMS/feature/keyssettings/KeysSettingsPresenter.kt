@@ -20,6 +20,10 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
         newState { copy(encodingScheme = scheme) }
     }
 
+    fun setConversation() {
+        newState { copy(isConversation = true) }
+    }
+
     override fun bindIntents(view: KeysSettingsView) {
         super.bindIntents(view)
 
@@ -29,12 +33,17 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                 when(it.id) {
                     R.id.enableKey -> {
                         newState {
-                            if(!keyEnabled) copy(keyEnabled = true)
-                            else if(key.isBlank()) copy(
-                                keyEnabled = false,
-                                keySettingsIsShown = false
-                            )
-                            else copy(resetCheckIsShown = true)
+                            if(isConversation) {
+                                view.keyEnabled(!keyEnabled)
+                                copy(keyEnabled = !keyEnabled)
+                            } else {
+                                if(!keyEnabled) copy(keyEnabled = true)
+                                else if(key.isBlank()) copy(
+                                    keyEnabled = false,
+                                    keySettingsIsShown = false
+                                )
+                                else copy(resetCheckIsShown = true)
+                            }
                         }
                     }
                     R.id.scanQr -> view.scanQrCode()

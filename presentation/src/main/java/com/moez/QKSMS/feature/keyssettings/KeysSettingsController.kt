@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -23,6 +24,8 @@ import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.injection.appComponent
+import com.moez.QKSMS.interactor.SetEncryptionEnabled
+import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
@@ -36,6 +39,8 @@ import javax.inject.Inject
 
 class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView {
 
+    @Inject lateinit var setEncryptionKey: SetEncryptionKey
+    @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
     @Inject lateinit var context: Context
     @Inject lateinit var prefs: Preferences
     @Inject lateinit var conversationsRepo: ConversationRepository
@@ -55,12 +60,14 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         threadId = activity.intent.getLongExtra("threadId", -1)
+        Log.w("KSC_", threadId.toString())
 
         if(threadId == -1L) {
             presenter.setKeyEnabled(prefs.globalEncryptionKey.get().isNotBlank())
             presenter.setKey(prefs.globalEncryptionKey.get())
             presenter.setEncodingScheme(prefs.encodingScheme.get())
         } else {
+            presenter.setConversation()
             presenter.setKeyEnabled(conversationsRepo.getConversation(threadId)?.encryptionEnabled ?: false)
             presenter.setKey(conversationsRepo.getConversation(threadId)?.encryptionKey ?: "")
             presenter.setEncodingScheme(conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: prefs.encodingScheme.get())
@@ -80,13 +87,16 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         .let { buttons -> Observable.merge(buttons) }
 
     override fun render(state: KeysSettingsState) {
+        encryptionKeyCategory.text =
+            if(threadId == -1L) context.getText(R.string.settings_global_encryption_key_title)
+            else context.getText(R.string.settings_encryption_key_title)
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
         resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
         scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
         scanQr.isClickable = state.keyEnabled
         generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
         generateKey.isClickable = state.keyEnabled
-        enableKey.checkbox.isChecked = state.key.isNotBlank()
+        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
         resetKey.isClickable = state.keyEnabled
     }
@@ -153,8 +163,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 Toast.makeText(context,"${context.getText(R.string.settings_key_from_qr_set)}: ${qrResult.contents}",Toast.LENGTH_LONG).show()
                 if(threadId == -1L) prefs.globalEncryptionKey.set(generatedKey)
                 else {
-                    conversationsRepo.setEncryptionKey(threadId, generatedKey)
-                    conversationsRepo.setEncryptionEnabled(threadId, true)
+                    setEncryptionKey.execute(SetEncryptionKey.Params(threadId,generatedKey))
+                    setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
                 }
             }
             else Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
@@ -167,8 +177,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 prefs.globalEncryptionKey.set(field.text.toString())
             }
             else {
-                conversationsRepo.setEncryptionKey(threadId, field.text.toString())
-                conversationsRepo.setEncryptionEnabled(threadId, true)
+                setEncryptionKey.execute(SetEncryptionKey.Params(threadId,field.text.toString()))
+                setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
             }
             presenter.setKey(field.text.toString())
             copyKey()
@@ -181,10 +191,14 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         if(threadId == -1L) {
             prefs.globalEncryptionKey.set("")
         } else {
-            conversationsRepo.setEncryptionKey(threadId, "")
-            conversationsRepo.setEncryptionEnabled(threadId, false)
+            setEncryptionKey.execute(SetEncryptionKey.Params(threadId,""))
+            setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, false))
         }
         Toast.makeText(context, context.getText(R.string.settings_key_reset), Toast.LENGTH_SHORT).show()
+    }
+
+    override fun keyEnabled(enabled: Boolean) {
+        setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, enabled))
     }
 
     private fun EditText.copyToClipboard(): Boolean {

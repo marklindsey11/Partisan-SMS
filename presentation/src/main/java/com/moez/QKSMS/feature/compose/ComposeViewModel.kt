@@ -220,15 +220,14 @@ class ComposeViewModel @Inject constructor(
             }
         }.subscribe()
 
-        val globalKeyObservable = prefs.globalEncryptionKey.asObservable()
-        val conversationKeyObservable = conversation.map { conversation -> conversation.encryptionKey }
         val encryptionEnabledObservable = conversation.map { conversation -> conversation.encryptionEnabled }
-        disposables += Observables.combineLatest(globalKeyObservable, conversationKeyObservable, encryptionEnabledObservable)
-                .subscribe { (globalKey, conversationKey, encryptionEnabled) ->
+        val conversationIdObservable = conversation.map { conversation -> conversation.id }
+        disposables += Observables.combineLatest(encryptionEnabledObservable, conversationIdObservable)
+                .subscribe { (encryptionEnabled, conversationId) ->
                     newState { copy(
                         encrypted = encryptionEnabled,
-//                        encrypted = (globalKey.isNotEmpty() || conversationKey.isNotEmpty()),
-                        encryptionEnabled = encryptionEnabled
+                        encryptionEnabled = encryptionEnabled,
+                        messages = Pair(conversationRepo.getConversation(conversationId)!!, messageRepo.getMessages(conversationId))
                     ) }
                 }
 
@@ -790,8 +789,7 @@ class ComposeViewModel @Inject constructor(
                     setEncryptionEnabled.execute(it) {
                         newState { copy(
                             encryptionEnabled = true,
-                            encrypted = true,
-                            messages = Pair(conversationRepo.getConversation(it.threadId)!!, messageRepo.getMessages(it.threadId))
+                            encrypted = true
                         ) }
                     }
                 }
@@ -807,8 +805,7 @@ class ComposeViewModel @Inject constructor(
                 setEncryptionEnabled.execute(it) {
                     newState { copy(
                         encryptionEnabled = false,
-                        encrypted = false,
-                        messages = Pair(conversationRepo.getConversation(it.threadId)!!, messageRepo.getMessages(it.threadId))
+                        encrypted = false
                     ) }
                 }
             }

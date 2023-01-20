@@ -15,5 +15,6 @@ interface KeysSettingsView : QkViewContract<KeysSettingsState> {
     fun scanQrCode()
     fun setKey()
     fun resetKey()
+    fun keyEnabled(enabled: Boolean)
 
 }
