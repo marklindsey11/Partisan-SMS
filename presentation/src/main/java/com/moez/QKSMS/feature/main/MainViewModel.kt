@@ -106,6 +106,10 @@ class MainViewModel @Inject constructor(
         disposables += ratingManager.shouldShowRating
                 .subscribe { show -> newState { copy(showRating = show) } }
 
+        disposables += prefs.globalEncryptionKey.asObservable().subscribe {
+            newState { copy(keysIsUnset = it.isNullOrBlank()) }
+        }
+
 
         // Migrate the preferences from 2.7.3
         migratePreferences.execute(Unit)
@@ -283,6 +287,7 @@ class MainViewModel @Inject constructor(
                         NavItem.PLUS -> navigator.showQksmsPlusActivity("main_menu")
                         NavItem.HELP -> navigator.showSupport()
                         NavItem.INVITE -> navigator.showInvite()
+                        NavItem.KEYS_SETTINGS -> navigator.showKeysSettings()
                         else -> Unit
                     }
                     drawerItem

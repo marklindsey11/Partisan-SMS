@@ -506,6 +506,8 @@
         <item>1 hour</item>
     </string-array>
     <string name="settings_global_encryption_key_title">Global Encryption Key</string>
+    <string name="settings_scan_qr_title">Scan QR-code with key</string>
+    <string name="settings_generate_new_global_key">Generate or insert global key </string>
     <string name="conversation_delete_received_after">Delete Received Messages After</string>
     <string name="conversation_delete_sent_after">Delete Sent Messages After</string>
     <string name="sms_for_reset">SMS for Reset</string>
@@ -528,4 +530,10 @@
     <string name="invalid_key">Invalid Key</string>
     <string name="button_generate">&#128259;</string>
     <string name="key_description">Share this key with your interlocutor for a secure messaging</string>
+    <string name="settings_reset_global_key">Reset global encryption key</string>
+    <string name="settings_key_from_qr_set">Key has been set</string>
+    <string name="settings_bad_key">Bad key!</string>
+    <string name="settings_key_reset">Key has been reset</string>
+    <string name="settings_reset_global_key_sure">I am sure</string>
+    <string name="settings_reset_global_key_sure_summary">I understand that when I press this button it will be impossible to restore my encryption key and all messages encrypted with it</string>
 </resources>

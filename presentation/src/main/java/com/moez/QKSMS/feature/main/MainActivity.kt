@@ -23,6 +23,7 @@ import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -103,7 +104,8 @@ class MainActivity : QkThemedActivity(), MainView {
                 settings.clicks().map { NavItem.SETTINGS },
                 plus.clicks().map { NavItem.PLUS },
                 help.clicks().map { NavItem.HELP },
-                invite.clicks().map { NavItem.INVITE }))
+                invite.clicks().map { NavItem.INVITE },
+                keysSettingsIsSet.clicks().map { NavItem.KEYS_SETTINGS}))
     }
     override val optionsItemIntent: Subject<Int> = PublishSubject.create()
     override val plusBannerIntent by lazy { plusBanner.clicks() }
@@ -232,6 +234,15 @@ class MainActivity : QkThemedActivity(), MainView {
         toolbarSearch.setVisible(state.page is Inbox && state.page.selected == 0 || state.page is Searching)
         toolbarTitle.setVisible(toolbarSearch.visibility != View.VISIBLE)
 
+        with(keysSettingsIsSet) {
+            if (state.keysIsUnset) {
+                setImageResource(R.drawable.ic_lock_open_24dp)
+                setTint(Color.RED)
+            } else {
+                setImageResource(R.drawable.ic_lock_24dp)
+                setTint(Color.GRAY)
+            }
+        }
         toolbar.menu.findItem(R.id.archive)?.isVisible = state.page is Inbox && selectedConversations != 0
         toolbar.menu.findItem(R.id.unarchive)?.isVisible = state.page is Archived && selectedConversations != 0
         toolbar.menu.findItem(R.id.delete)?.isVisible = selectedConversations != 0
