@@ -7,7 +7,6 @@ import androidx.core.view.isVisible
 import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.HiddenSettingsSingleton
-import com.moez.QKSMS.common.QkDialog
 import com.moez.QKSMS.common.base.QkAdapter
 import com.moez.QKSMS.common.base.QkViewHolder
 import com.moez.QKSMS.common.util.Colors
@@ -28,10 +27,6 @@ import javax.inject.Inject
 class ConversationInfoAdapter @Inject constructor(
     private val context: Context,
     private val colors: Colors,
-    val deleteEncryptedAfterDialog: QkDialog,
-    val deleteReceivedAfterDialog: QkDialog,
-    val deleteSentAfterDialog: QkDialog,
-    val encodingSchemeDialog: QkDialog,
 ) : QkAdapter<ConversationInfoItem>() {
 
     val recipientClicks: Subject<Long> = PublishSubject.create()
@@ -44,11 +39,6 @@ class ConversationInfoAdapter @Inject constructor(
     val deleteClicks: Subject<Unit> = PublishSubject.create()
     val mediaClicks: Subject<Long> = PublishSubject.create()
     val encryptionKeyClicks: Subject<Unit> = PublishSubject.create()
-    val encodingSchemeClicks: Subject<Unit> = PublishSubject.create()
-    val deleteEncryptedAfterClicks: Subject<Unit> = PublishSubject.create()
-    val deleteReceivedAfterClicks: Subject<Unit> = PublishSubject.create()
-    val deleteSentAfterClicks: Subject<Unit> = PublishSubject.create()
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QkViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -78,10 +68,6 @@ class ConversationInfoAdapter @Inject constructor(
                 block.clicks().subscribe(blockClicks)
                 delete.clicks().subscribe(deleteClicks)
                 encryptionKey.clicks().subscribe(encryptionKeyClicks)
-//                encodingScheme.clicks().subscribe(encodingSchemeClicks)
-//                conversationDeleteEncryptedAfter.clicks().subscribe(deleteEncryptedAfterClicks)
-//                conversationDeleteReceivedAfter.clicks().subscribe(deleteReceivedAfterClicks)
-//                conversationDeleteSentAfter.clicks().subscribe(deleteSentAfterClicks)
             }
 
             2 -> QkViewHolder(inflater.inflate(R.layout.conversation_media_list_item, parent, false)).apply {
@@ -130,28 +116,8 @@ class ConversationInfoAdapter @Inject constructor(
                 })
 
                 // hidden
-
                 holder.encryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
                 holder.encryptionKey.summary = if (item.encryptionKey.isNotEmpty()) "***" else ""
-
-//                holder.encodingScheme.isVisible = HiddenSettingsSingleton.hiddenEnabled
-//                holder.encodingScheme.summary = item.encodingSchemeSummary
-                encodingSchemeDialog.adapter.selectedItem = item.encodingSchemeId
-
-                val labels = context.resources.getStringArray(R.array.delete_message_after_labels)
-
-//                holder.conversationDeleteEncryptedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled && item.encryptionKey.isNotEmpty()
-//                holder.conversationDeleteEncryptedAfter.summary = labels[item.deleteEncryptedAfter]
-                deleteEncryptedAfterDialog.adapter.selectedItem = item.deleteEncryptedAfter
-
-//                holder.conversationDeleteReceivedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
-//                holder.conversationDeleteReceivedAfter.summary = labels[item.deleteReceivedAfter]
-                deleteReceivedAfterDialog.adapter.selectedItem = item.deleteReceivedAfter
-
-//                holder.conversationDeleteSentAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
-//                holder.conversationDeleteSentAfter.summary = labels[item.deleteSentAfter]
-                deleteSentAfterDialog.adapter.selectedItem = item.deleteSentAfter
-
                 holder.hiddenSeparator.isVisible = HiddenSettingsSingleton.hiddenEnabled
             }
 

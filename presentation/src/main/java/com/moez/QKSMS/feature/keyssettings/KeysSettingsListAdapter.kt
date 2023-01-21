@@ -1,16 +1,17 @@
 package com.moez.QKSMS.feature.keyssettings
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.rxbinding2.widget.checked
 import com.moez.QKSMS.R
 
+@SuppressLint("NotifyDataSetChanged")
 class KeysSettingsListAdapter(
     private val items: Array<String>,
-    private val encodingSchemeId: Int,
+    encodingSchemeId: Int,
     private val callback: (Int) -> Unit
 ) : RecyclerView.Adapter<KeysSettingsListAdapter.ViewHolder>() {
 

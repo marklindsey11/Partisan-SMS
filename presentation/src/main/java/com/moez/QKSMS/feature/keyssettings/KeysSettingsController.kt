@@ -105,15 +105,19 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         encryptionKeyCategory.text =
             if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_encryption_key_title)
+
+        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
+
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
         scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
         scanQr.isClickable = state.keyEnabled
         generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
         generateKey.isClickable = state.keyEnabled
-        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
+
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
         resetKey.isClickable = state.keyEnabled
+        resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
+
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
         settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
