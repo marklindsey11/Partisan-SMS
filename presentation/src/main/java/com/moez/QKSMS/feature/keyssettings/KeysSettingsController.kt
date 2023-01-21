@@ -8,7 +8,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
-import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -68,22 +67,23 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         threadId = activity.intent.getLongExtra("threadId", -1)
-        Log.w("KSC_", threadId.toString())
-
         if(threadId == -1L) {
-            presenter.setKeyEnabled(prefs.globalEncryptionKey.get().isNotBlank())
-            presenter.setKey(prefs.globalEncryptionKey.get())
-            presenter.setEncodingScheme(prefs.encodingScheme.get())
+            presenter.setGlobalParameters(
+                keyEnabled = prefs.globalEncryptionKey.get().isNotBlank(),
+                key = prefs.globalEncryptionKey.get(),
+                encodingScheme = prefs.encodingScheme.get()
+            )
             schemesListAdapter.setSelected(prefs.encodingScheme.get())
         } else {
             val conversation = conversationsRepo.getConversation(threadId)
-            presenter.setConversation()
-            presenter.setKeyEnabled(conversation?.encryptionEnabled ?: false)
-            presenter.setKey(conversation?.encryptionKey ?: "")
-            presenter.setEncodingScheme(conversation?.encodingSchemeId ?: prefs.encodingScheme.get())
-            presenter.setDeleteEncryptedAfter(conversation?.deleteEncryptedAfter ?: 0)
-            presenter.setDeleteReceivedAfter(conversation?.deleteReceivedAfter ?: 0)
-            presenter.setDeleteSentAfter(conversation?.deleteSentAfter ?: 0)
+            presenter.setConversationParameters(
+                keyEnabled = conversation?.encryptionEnabled ?: false,
+                key = conversation?.encryptionKey ?: "",
+                encodingScheme = conversation?.encodingSchemeId ?: prefs.encodingScheme.get(),
+                deleteEncryptedAfter = conversation?.deleteEncryptedAfter ?: 0,
+                deleteReceivedAfter = conversation?.deleteReceivedAfter ?: 0,
+                deleteSentAfter = conversation?.deleteSentAfter ?: 0,
+            )
             schemesListAdapter.setSelected(conversation?.encodingSchemeId ?: 0)
 
         }

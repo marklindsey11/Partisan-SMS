@@ -8,20 +8,40 @@ import javax.inject.Inject
 
 class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView, KeysSettingsState>(KeysSettingsState()) {
 
-    fun setKeyEnabled(state: Boolean) {
-        newState { copy(keyEnabled = state) }
+    fun setConversationParameters(
+        keyEnabled: Boolean,
+        key: String,
+        encodingScheme: Int,
+        deleteEncryptedAfter: Int,
+        deleteReceivedAfter: Int,
+        deleteSentAfter: Int,
+    ) {
+       newState { copy(
+           key = key,
+           keyEnabled = keyEnabled,
+           encodingScheme = encodingScheme,
+           isConversation = true,
+           deleteEncryptedAfter = deleteEncryptedAfter,
+           deleteReceivedAfter = deleteReceivedAfter,
+           deleteSentAfter = deleteSentAfter
+       ) }
+    }
+
+    fun setGlobalParameters(
+        keyEnabled: Boolean,
+        key: String,
+        encodingScheme: Int,
+    ) {
+        newState { copy(
+            key = key,
+            keyEnabled = keyEnabled,
+            encodingScheme = encodingScheme,
+            isConversation = false
+        ) }
     }
 
     fun setKey(key: String) {
         newState { copy(key = key) }
-    }
-
-    fun setEncodingScheme(scheme: Int) {
-        newState { copy(encodingScheme = scheme) }
-    }
-
-    fun setConversation() {
-        newState { copy(isConversation = true) }
     }
 
     fun setDeleteEncryptedAfter(delay: Int) {
