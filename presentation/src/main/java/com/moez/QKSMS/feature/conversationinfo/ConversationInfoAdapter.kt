@@ -78,10 +78,10 @@ class ConversationInfoAdapter @Inject constructor(
                 block.clicks().subscribe(blockClicks)
                 delete.clicks().subscribe(deleteClicks)
                 encryptionKey.clicks().subscribe(encryptionKeyClicks)
-                encodingScheme.clicks().subscribe(encodingSchemeClicks)
-                conversationDeleteEncryptedAfter.clicks().subscribe(deleteEncryptedAfterClicks)
-                conversationDeleteReceivedAfter.clicks().subscribe(deleteReceivedAfterClicks)
-                conversationDeleteSentAfter.clicks().subscribe(deleteSentAfterClicks)
+//                encodingScheme.clicks().subscribe(encodingSchemeClicks)
+//                conversationDeleteEncryptedAfter.clicks().subscribe(deleteEncryptedAfterClicks)
+//                conversationDeleteReceivedAfter.clicks().subscribe(deleteReceivedAfterClicks)
+//                conversationDeleteSentAfter.clicks().subscribe(deleteSentAfterClicks)
             }
 
             2 -> QkViewHolder(inflater.inflate(R.layout.conversation_media_list_item, parent, false)).apply {
@@ -134,22 +134,22 @@ class ConversationInfoAdapter @Inject constructor(
                 holder.encryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
                 holder.encryptionKey.summary = if (item.encryptionKey.isNotEmpty()) "***" else ""
 
-                holder.encodingScheme.isVisible = HiddenSettingsSingleton.hiddenEnabled
-                holder.encodingScheme.summary = item.encodingSchemeSummary
+//                holder.encodingScheme.isVisible = HiddenSettingsSingleton.hiddenEnabled
+//                holder.encodingScheme.summary = item.encodingSchemeSummary
                 encodingSchemeDialog.adapter.selectedItem = item.encodingSchemeId
 
                 val labels = context.resources.getStringArray(R.array.delete_message_after_labels)
 
-                holder.conversationDeleteEncryptedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled && item.encryptionKey.isNotEmpty()
-                holder.conversationDeleteEncryptedAfter.summary = labels[item.deleteEncryptedAfter]
+//                holder.conversationDeleteEncryptedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled && item.encryptionKey.isNotEmpty()
+//                holder.conversationDeleteEncryptedAfter.summary = labels[item.deleteEncryptedAfter]
                 deleteEncryptedAfterDialog.adapter.selectedItem = item.deleteEncryptedAfter
 
-                holder.conversationDeleteReceivedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
-                holder.conversationDeleteReceivedAfter.summary = labels[item.deleteReceivedAfter]
+//                holder.conversationDeleteReceivedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
+//                holder.conversationDeleteReceivedAfter.summary = labels[item.deleteReceivedAfter]
                 deleteReceivedAfterDialog.adapter.selectedItem = item.deleteReceivedAfter
 
-                holder.conversationDeleteSentAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
-                holder.conversationDeleteSentAfter.summary = labels[item.deleteSentAfter]
+//                holder.conversationDeleteSentAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled
+//                holder.conversationDeleteSentAfter.summary = labels[item.deleteSentAfter]
                 deleteSentAfterDialog.adapter.selectedItem = item.deleteSentAfter
 
                 holder.hiddenSeparator.isVisible = HiddenSettingsSingleton.hiddenEnabled

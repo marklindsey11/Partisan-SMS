@@ -56,8 +56,8 @@ class ConversationInfoPresenter @Inject constructor(
     private val markUnarchived: MarkUnarchived,
     private val navigator: Navigator,
     private val permissionManager: PermissionManager,
-    private val setDeleteMessagesAfter: SetDeleteMessagesAfter,
-    private val setEncodingScheme: SetEncodingScheme,
+//    private val setDeleteMessagesAfter: SetDeleteMessagesAfter,
+//    private val setEncodingScheme: SetEncodingScheme,
 ) : QkPresenter<ConversationInfoView, ConversationInfoState>(
         ConversationInfoState(threadId = threadId)
 ) {
@@ -209,68 +209,68 @@ class ConversationInfoPresenter @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe { conversation -> view.showEncryptionKeyDialog(conversation) }
 
-        view.encodingSchemeClicks()
-                .withLatestFrom(conversation) { _, conversation -> conversation }
-                .autoDisposable(view.scope())
-                .subscribe { conversation -> view.showEncodingSchemeDialog(conversation) }
-
-        view.deleteEncryptedAfterClicks()
-                .withLatestFrom(conversation) { _, conversation -> conversation }
-                .autoDisposable(view.scope())
-                .subscribe { conversation -> view.showDeleteEncryptedAfterDialog(conversation) }
-
-        view.deleteReceivedAfterClicks()
-                .withLatestFrom(conversation) { _, conversation -> conversation }
-                .autoDisposable(view.scope())
-                .subscribe { conversation -> view.showDeleteReceivedAfterDialog(conversation) }
-
-        view.deleteSentAfterClicks()
-                .withLatestFrom(conversation) { _, conversation -> conversation }
-                .autoDisposable(view.scope())
-                .subscribe { conversation -> view.showDeleteSentAfterDialog(conversation) }
-
-        view.deleteEncryptedAfterSelected()
-                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
-                .doOnNext { (conversation, duration) ->
-                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.ENCRYPTED, duration))
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
-
-        view.deleteReceivedAfterSelected()
-                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
-                .doOnNext { (conversation, duration) ->
-                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.RECEIVED, duration))
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
-
-        view.deleteSentAfterSelected()
-                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
-                .doOnNext { (conversation, duration) ->
-                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.SENT, duration))
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
-
-
-        view.encodingSchemeSelected()
-                .map {
-                    it.takeIf { it != GLOBAL_SCHEME_INDEX } ?: Conversation.SCHEME_NOT_DEF
-                }
-                .withLatestFrom(conversation) { encodingSchemeId, conversation ->
-                    Pair(conversation, encodingSchemeId)
-                }
-                .doOnNext { (conversation, encodingSchemeId) ->
-                    setEncodingScheme.execute(
-                        SetEncodingScheme.Params(
-                            conversation.id,
-                            encodingSchemeId
-                        )
-                    )
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
+//        view.encodingSchemeClicks()
+//                .withLatestFrom(conversation) { _, conversation -> conversation }
+//                .autoDisposable(view.scope())
+//                .subscribe { conversation -> view.showEncodingSchemeDialog(conversation) }
+//
+//        view.deleteEncryptedAfterClicks()
+//                .withLatestFrom(conversation) { _, conversation -> conversation }
+//                .autoDisposable(view.scope())
+//                .subscribe { conversation -> view.showDeleteEncryptedAfterDialog(conversation) }
+//
+//        view.deleteReceivedAfterClicks()
+//                .withLatestFrom(conversation) { _, conversation -> conversation }
+//                .autoDisposable(view.scope())
+//                .subscribe { conversation -> view.showDeleteReceivedAfterDialog(conversation) }
+//
+//        view.deleteSentAfterClicks()
+//                .withLatestFrom(conversation) { _, conversation -> conversation }
+//                .autoDisposable(view.scope())
+//                .subscribe { conversation -> view.showDeleteSentAfterDialog(conversation) }
+//
+//        view.deleteEncryptedAfterSelected()
+//                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+//                .doOnNext { (conversation, duration) ->
+//                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.ENCRYPTED, duration))
+//                }
+//                .autoDisposable(view.scope())
+//                .subscribe()
+//
+//        view.deleteReceivedAfterSelected()
+//                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+//                .doOnNext { (conversation, duration) ->
+//                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.RECEIVED, duration))
+//                }
+//                .autoDisposable(view.scope())
+//                .subscribe()
+//
+//        view.deleteSentAfterSelected()
+//                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+//                .doOnNext { (conversation, duration) ->
+//                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.SENT, duration))
+//                }
+//                .autoDisposable(view.scope())
+//                .subscribe()
+//
+//
+//        view.encodingSchemeSelected()
+//                .map {
+//                    it.takeIf { it != GLOBAL_SCHEME_INDEX } ?: Conversation.SCHEME_NOT_DEF
+//                }
+//                .withLatestFrom(conversation) { encodingSchemeId, conversation ->
+//                    Pair(conversation, encodingSchemeId)
+//                }
+//                .doOnNext { (conversation, encodingSchemeId) ->
+//                    setEncodingScheme.execute(
+//                        SetEncodingScheme.Params(
+//                            conversation.id,
+//                            encodingSchemeId
+//                        )
+//                    )
+//                }
+//                .autoDisposable(view.scope())
+//                .subscribe()
     }
 
     companion object {

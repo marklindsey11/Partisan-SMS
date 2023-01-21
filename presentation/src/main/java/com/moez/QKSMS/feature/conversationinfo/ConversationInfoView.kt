@@ -36,15 +36,15 @@ interface ConversationInfoView : QkViewContract<ConversationInfoState> {
     fun confirmDelete(): Observable<*>
     fun mediaClicks(): Observable<Long>
     fun encryptionKeyClicks(): Observable<*>
-    fun deleteEncryptedAfterClicks(): Observable<*>
-    fun deleteReceivedAfterClicks(): Observable<*>
-    fun deleteSentAfterClicks(): Observable<*>
-    fun deleteEncryptedAfterSelected(): Observable<Int>
-    fun deleteReceivedAfterSelected(): Observable<Int>
-    fun deleteSentAfterSelected(): Observable<Int>
-    fun encodingSchemeSelected(): Observable<Int>
-    fun encodingSchemeClicks(): Observable<*>
-    fun showEncodingSchemeDialog(conversation: Conversation)
+//    fun deleteEncryptedAfterClicks(): Observable<*>
+//    fun deleteReceivedAfterClicks(): Observable<*>
+//    fun deleteSentAfterClicks(): Observable<*>
+//    fun deleteEncryptedAfterSelected(): Observable<Int>
+//    fun deleteReceivedAfterSelected(): Observable<Int>
+//    fun deleteSentAfterSelected(): Observable<Int>
+//    fun encodingSchemeSelected(): Observable<Int>
+//    fun encodingSchemeClicks(): Observable<*>
+//    fun showEncodingSchemeDialog(conversation: Conversation)
 
     fun showNameDialog(name: String)
     fun showThemePicker(recipientId: Long)
@@ -52,8 +52,8 @@ interface ConversationInfoView : QkViewContract<ConversationInfoState> {
     fun requestDefaultSms()
     fun showDeleteDialog()
     fun showEncryptionKeyDialog(conversation: Conversation)
-    fun showDeleteEncryptedAfterDialog(conversation: Conversation)
-    fun showDeleteReceivedAfterDialog(conversation: Conversation)
-    fun showDeleteSentAfterDialog(conversation: Conversation)
+//    fun showDeleteEncryptedAfterDialog(conversation: Conversation)
+//    fun showDeleteReceivedAfterDialog(conversation: Conversation)
+//    fun showDeleteSentAfterDialog(conversation: Conversation)
 
 }
