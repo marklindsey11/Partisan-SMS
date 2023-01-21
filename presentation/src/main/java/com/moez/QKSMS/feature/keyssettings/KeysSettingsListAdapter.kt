@@ -36,6 +36,11 @@ class KeysSettingsListAdapter(
         }
     }
 
+    fun setSelected(item: Int) {
+        selectedItem = item
+        notifyDataSetChanged()
+    }
+
     override fun getItemCount() = items.size
 
 }

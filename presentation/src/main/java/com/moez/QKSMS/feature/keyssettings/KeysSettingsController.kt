@@ -56,6 +56,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     private lateinit var generatedKey: String
     private lateinit var deleteAfterLabels: Array<String>
     private lateinit var encodingSchemes: Array<String>
+    private lateinit var schemesListAdapter: KeysSettingsListAdapter
     private var threadId = -1L
 
     init {
@@ -73,6 +74,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             presenter.setKeyEnabled(prefs.globalEncryptionKey.get().isNotBlank())
             presenter.setKey(prefs.globalEncryptionKey.get())
             presenter.setEncodingScheme(prefs.encodingScheme.get())
+            schemesListAdapter.setSelected(prefs.encodingScheme.get())
         } else {
             val conversation = conversationsRepo.getConversation(threadId)
             presenter.setConversation()
@@ -82,6 +84,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             presenter.setDeleteEncryptedAfter(conversation?.deleteEncryptedAfter ?: 0)
             presenter.setDeleteReceivedAfter(conversation?.deleteReceivedAfter ?: 0)
             presenter.setDeleteSentAfter(conversation?.deleteSentAfter ?: 0)
+            schemesListAdapter.setSelected(conversation?.encodingSchemeId ?: 0)
 
         }
     }
@@ -111,7 +114,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
         resetKey.isClickable = state.keyEnabled
-
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
         settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
@@ -130,20 +132,13 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
         val currentScheme = if(threadId == -1L) prefs.encodingScheme.get()
             else conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: 0
-        val schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
+        schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
         encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)
         encodingSchemesRecycler.adapter = schemesListAdapter
 
         settings_delete_encrypted_after.max = deleteAfterLabels.lastIndex
         settings_delete_received_after.max = deleteAfterLabels.lastIndex
         settings_delete_sent_after.max = deleteAfterLabels.lastIndex
-
-        if(threadId != -1L) {
-            val conversation = conversationsRepo.getConversation(threadId)
-            settings_delete_encrypted_after.progress = conversation?.deleteEncryptedAfter ?: 0
-            settings_delete_received_after.progress = conversation?.deleteReceivedAfter ?: 0
-            settings_delete_sent_after.progress = conversation?.deleteSentAfter ?: 0
-        }
 
         settings_delete_encrypted_after.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
