@@ -16,5 +16,8 @@ interface KeysSettingsView : QkViewContract<KeysSettingsState> {
     fun setKey()
     fun resetKey()
     fun keyEnabled(enabled: Boolean)
+    fun setDeleteEncryptedAfter(delay: Int)
+    fun setDeleteReceivedAfter(delay: Int)
+    fun setDeleteSentAfter(delay: Int)
 
 }

@@ -34,6 +34,7 @@ import com.moez.QKSMS.feature.blocking.BlockingDialog
 import com.moez.QKSMS.feature.conversationinfo.injection.ConversationInfoModule
 import com.moez.QKSMS.feature.themepicker.ThemePickerController
 import com.moez.QKSMS.injection.appComponent
+import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
 import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.model.Conversation
 import com.uber.autodispose.android.lifecycle.scope

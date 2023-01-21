@@ -6,5 +6,8 @@ data class KeysSettingsState(
     val keySettingsIsShown: Boolean = false,
     val resetCheckIsShown: Boolean = false,
     val encodingScheme: Int = 0,
-    val isConversation: Boolean = false
+    val isConversation: Boolean = false,
+    val deleteEncryptedAfter: Int = 0,
+    val deleteReceivedAfter: Int = 0,
+    val deleteSentAfter: Int = 0,
 )

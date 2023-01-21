@@ -24,6 +24,18 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
         newState { copy(isConversation = true) }
     }
 
+    fun setDeleteEncryptedAfter(delay: Int) {
+        newState { copy(deleteEncryptedAfter = delay) }
+    }
+
+    fun setDeleteReceivedAfter(delay: Int) {
+        newState { copy(deleteReceivedAfter = delay) }
+    }
+
+    fun setDeleteSentAfter(delay: Int) {
+        newState { copy(deleteSentAfter = delay) }
+    }
+
     override fun bindIntents(view: KeysSettingsView) {
         super.bindIntents(view)
 

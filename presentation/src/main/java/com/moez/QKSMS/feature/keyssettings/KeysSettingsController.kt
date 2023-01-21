@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,6 +25,8 @@ import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.injection.appComponent
+import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
+import com.moez.QKSMS.interactor.SetEncodingScheme
 import com.moez.QKSMS.interactor.SetEncryptionEnabled
 import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
@@ -41,14 +44,18 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
     @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
+    @Inject lateinit var setEncodingScheme: SetEncodingScheme
     @Inject lateinit var context: Context
     @Inject lateinit var prefs: Preferences
     @Inject lateinit var conversationsRepo: ConversationRepository
     @Inject lateinit var qrCodeWriter: QRCodeWriter
+    @Inject lateinit var setDeleteMessagesAfter: SetDeleteMessagesAfter
 
     @Inject override lateinit var presenter: KeysSettingsPresenter
 
     private lateinit var generatedKey: String
+    private lateinit var deleteAfterLabels: Array<String>
+    private lateinit var encodingSchemes: Array<String>
     private var threadId = -1L
 
     init {
@@ -67,10 +74,15 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             presenter.setKey(prefs.globalEncryptionKey.get())
             presenter.setEncodingScheme(prefs.encodingScheme.get())
         } else {
+            val conversation = conversationsRepo.getConversation(threadId)
             presenter.setConversation()
-            presenter.setKeyEnabled(conversationsRepo.getConversation(threadId)?.encryptionEnabled ?: false)
-            presenter.setKey(conversationsRepo.getConversation(threadId)?.encryptionKey ?: "")
-            presenter.setEncodingScheme(conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: prefs.encodingScheme.get())
+            presenter.setKeyEnabled(conversation?.encryptionEnabled ?: false)
+            presenter.setKey(conversation?.encryptionKey ?: "")
+            presenter.setEncodingScheme(conversation?.encodingSchemeId ?: prefs.encodingScheme.get())
+            presenter.setDeleteEncryptedAfter(conversation?.deleteEncryptedAfter ?: 0)
+            presenter.setDeleteReceivedAfter(conversation?.deleteReceivedAfter ?: 0)
+            presenter.setDeleteSentAfter(conversation?.deleteSentAfter ?: 0)
+
         }
     }
 
@@ -88,7 +100,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun render(state: KeysSettingsState) {
         encryptionKeyCategory.text =
-            if(threadId == -1L) context.getText(R.string.settings_global_encryption_key_title)
+            if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_encryption_key_title)
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
         resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
@@ -99,15 +111,76 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
         resetKey.isClickable = state.keyEnabled
+
+        settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
+        settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
+        settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
+        settings_delete_received_after.progress = state.deleteReceivedAfter
+        settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
+        settings_delete_sent_after.progress = state.deleteSentAfter
+        settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
     }
 
     override fun onViewCreated() {
         super.onViewCreated()
         preferences.postDelayed( { preferences?.animateLayoutChanges = true }, 100)
-        val encodingSchemes = context.resources.getStringArray(R.array.encoding_scheme_labels)
-        val schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, prefs.encodingScheme.get(), this::selectEncodingScheme)
+
+        encodingSchemes = context.resources.getStringArray(R.array.encoding_scheme_labels)
+        deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
+
+        val currentScheme = if(threadId == -1L) prefs.encodingScheme.get()
+            else conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: 0
+        val schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
         encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)
         encodingSchemesRecycler.adapter = schemesListAdapter
+
+        settings_delete_encrypted_after.max = deleteAfterLabels.lastIndex
+        settings_delete_received_after.max = deleteAfterLabels.lastIndex
+        settings_delete_sent_after.max = deleteAfterLabels.lastIndex
+
+        if(threadId != -1L) {
+            val conversation = conversationsRepo.getConversation(threadId)
+            settings_delete_encrypted_after.progress = conversation?.deleteEncryptedAfter ?: 0
+            settings_delete_received_after.progress = conversation?.deleteReceivedAfter ?: 0
+            settings_delete_sent_after.progress = conversation?.deleteSentAfter ?: 0
+        }
+
+        settings_delete_encrypted_after.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    if(fromUser) {
+                        presenter.setDeleteEncryptedAfter(value)
+                        setDeleteEncryptedAfter(value)
+                    }
+                }
+                override fun onStartTrackingTouch(p0: SeekBar?) {}
+                override fun onStopTrackingTouch(p0: SeekBar?) {}
+            }
+        )
+        settings_delete_received_after.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    if(fromUser) {
+                        presenter.setDeleteReceivedAfter(value)
+                        setDeleteReceivedAfter(value)
+                    }
+                }
+                override fun onStartTrackingTouch(p0: SeekBar?) {}
+                override fun onStopTrackingTouch(p0: SeekBar?) {}
+            }
+        )
+        settings_delete_sent_after.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    if(fromUser) {
+                        presenter.setDeleteSentAfter(value)
+                        setDeleteSentAfter(value)
+                    }
+                }
+                override fun onStartTrackingTouch(p0: SeekBar?) {}
+                override fun onStopTrackingTouch(p0: SeekBar?) {}
+            }
+        )
     }
 
     override fun onAttach(view: View) {
@@ -134,7 +207,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun selectEncodingScheme(schemeId: Int) {
-        prefs.encodingScheme.set(schemeId)
+        if(threadId == -1L) prefs.encodingScheme.set(schemeId)
+        else setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
     }
 
     override fun copyKey() {
@@ -207,6 +281,18 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             clipboard.setPrimaryClip(ClipData.newPlainText(resources.getString(R.string.conversation_encryption_key_title), text))
             true
         } else false
+    }
+
+    override fun setDeleteEncryptedAfter(delay: Int) {
+        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.ENCRYPTED, delay))
+    }
+
+    override fun setDeleteReceivedAfter(delay: Int) {
+        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.RECEIVED, delay))
+    }
+
+    override fun setDeleteSentAfter(delay: Int) {
+        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.SENT, delay))
     }
 
     private fun validate(text: String): Boolean {
