@@ -31,15 +31,11 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
-import kotlinx.android.synthetic.main.container_activity.*
-import kotlinx.android.synthetic.main.container_activity.view.*
 import kotlinx.android.synthetic.main.settings_keys_activity.*
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.view.*
 import kotlinx.android.synthetic.main.settings_switch_widget.view.*
 import kotlinx.android.synthetic.main.text_input_dialog.*
-import kotlinx.android.synthetic.main.toolbar.*
-import kotlinx.android.synthetic.main.toolbar.toolbar
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
@@ -199,7 +195,10 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return super.onOptionsItemSelected(item)
+        when(item.itemId) {
+            R.id.confirm -> {}
+        }
+        return true
     }
 
     override fun generateKey() {
