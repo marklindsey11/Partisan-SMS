@@ -13,7 +13,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.zxing.BarcodeFormat
@@ -32,13 +31,15 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
-import kotlinx.android.synthetic.main.conversation_info_settings.*
+import kotlinx.android.synthetic.main.container_activity.*
+import kotlinx.android.synthetic.main.container_activity.view.*
 import kotlinx.android.synthetic.main.settings_keys_activity.*
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.view.*
 import kotlinx.android.synthetic.main.settings_switch_widget.view.*
 import kotlinx.android.synthetic.main.text_input_dialog.*
 import kotlinx.android.synthetic.main.toolbar.*
+import kotlinx.android.synthetic.main.toolbar.toolbar
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
@@ -188,14 +189,13 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onAttach(view: View) {
         super.onAttach(view)
         presenter.bindIntents(this)
-        setTitle(context.getText(R.string.settings_category_hidden))
+        setTitle(R.string.settings_category_hidden)
         showBackButton(true)
-        (requireActivity() as? AppCompatActivity)?.supportActionBar
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.keysettings, menu)
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
