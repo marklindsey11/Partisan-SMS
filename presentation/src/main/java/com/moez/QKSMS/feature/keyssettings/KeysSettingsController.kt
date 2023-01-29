@@ -35,6 +35,7 @@ import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.view.*
 import kotlinx.android.synthetic.main.settings_switch_widget.view.*
 import kotlinx.android.synthetic.main.text_input_dialog.*
+import kotlinx.android.synthetic.main.toolbar.*
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
@@ -133,7 +134,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         generateKey.isClickable = state.keyEnabled
 
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
-        resetKey.isClickable = state.keyEnabled && state.key.isNotBlank()
+        resetKey.isClickable = state.key.isNotBlank()
         resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
