@@ -1,17 +1,16 @@
 package com.moez.QKSMS.feature.keyssettings
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,7 +38,7 @@ import kotlinx.android.synthetic.main.text_input_dialog.*
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
-class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView {
+class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView, DialogInterface.OnClickListener {
 
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
     @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
@@ -57,6 +56,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     private lateinit var encodingSchemes: Array<String>
     private lateinit var schemesListAdapter: KeysSettingsListAdapter
     private var threadId = -1L
+    private var initialState = KeysSettingsState()
+    private var newState = KeysSettingsState()
 
     init {
         appComponent.inject(this)
@@ -67,25 +68,42 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         threadId = activity.intent.getLongExtra("threadId", -1)
+
         if(threadId == -1L) {
-            presenter.setGlobalParameters(
+            newState = newState.copy(
                 keyEnabled = prefs.globalEncryptionKey.get().isNotBlank(),
                 key = prefs.globalEncryptionKey.get(),
-                encodingScheme = prefs.encodingScheme.get()
+                encodingScheme = prefs.encodingScheme.get(),
+                isConversation = false
+            )
+            initialState = newState
+            presenter.setGlobalParameters(
+                keyEnabled = newState.keyEnabled,
+                key = newState.key,
+                encodingScheme = newState.encodingScheme
             )
             schemesListAdapter.setSelected(prefs.encodingScheme.get())
         } else {
             val conversation = conversationsRepo.getConversation(threadId)
-            presenter.setConversationParameters(
+            newState = newState.copy(
                 keyEnabled = conversation?.encryptionEnabled ?: false,
                 key = conversation?.encryptionKey ?: "",
                 encodingScheme = conversation?.encodingSchemeId ?: prefs.encodingScheme.get(),
                 deleteEncryptedAfter = conversation?.deleteEncryptedAfter ?: 0,
                 deleteReceivedAfter = conversation?.deleteReceivedAfter ?: 0,
                 deleteSentAfter = conversation?.deleteSentAfter ?: 0,
+                isConversation = true
+            )
+            initialState = newState
+            presenter.setConversationParameters(
+                keyEnabled = newState.keyEnabled,
+                key = newState.key,
+                encodingScheme = newState.encodingScheme,
+                deleteEncryptedAfter = newState.deleteEncryptedAfter,
+                deleteReceivedAfter = newState.deleteReceivedAfter,
+                deleteSentAfter = newState.deleteSentAfter,
             )
             schemesListAdapter.setSelected(conversation?.encodingSchemeId ?: 0)
-
         }
     }
 
@@ -115,7 +133,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         generateKey.isClickable = state.keyEnabled
 
         resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
-        resetKey.isClickable = state.keyEnabled
+        resetKey.isClickable = state.keyEnabled && state.key.isNotBlank()
         resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
@@ -196,9 +214,33 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
-            R.id.confirm -> {}
+            R.id.confirm -> saveChanges()
         }
         return true
+    }
+
+    override fun handleBack(): Boolean {
+        return if(newState == initialState) super.handleBack()
+        else {
+            AlertDialog.Builder(this.activity)
+                .setMessage(R.string.settings_exit_with_no_changes)
+                .setNegativeButton(R.string.rate_dismiss, this)
+                .setPositiveButton(R.string.button_save, this)
+                .create()
+                .show()
+            true
+        }
+    }
+
+    override fun onClick(dialog: DialogInterface?, button: Int) {
+        if(button == AlertDialog.BUTTON_NEGATIVE) {
+            newState = initialState
+            requireActivity().finish()
+        }
+        if(button == AlertDialog.BUTTON_POSITIVE) {
+            saveChanges()
+            requireActivity().finish()
+        }
     }
 
     override fun generateKey() {
@@ -218,8 +260,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun selectEncodingScheme(schemeId: Int) {
-        if(threadId == -1L) prefs.encodingScheme.set(schemeId)
-        else setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
+        newState = newState.copy(encodingScheme = schemeId)
     }
 
     override fun copyKey() {
@@ -246,11 +287,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             if(validate(qrResult.contents)) {
                 generatedKey = qrResult.contents
                 Toast.makeText(context,"${context.getText(R.string.settings_key_from_qr_set)}: ${qrResult.contents}",Toast.LENGTH_LONG).show()
-                if(threadId == -1L) prefs.globalEncryptionKey.set(generatedKey)
-                else {
-                    setEncryptionKey.execute(SetEncryptionKey.Params(threadId,generatedKey))
-                    setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
-                }
+                newState = newState.copy(key = generatedKey)
             }
             else Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
         } else super.onActivityResult(requestCode, resultCode, data)
@@ -258,13 +295,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun setKey() {
         if(validate(field.text.toString())) {
-            if(threadId == -1L) {
-                prefs.globalEncryptionKey.set(field.text.toString())
-            }
-            else {
-                setEncryptionKey.execute(SetEncryptionKey.Params(threadId,field.text.toString()))
-                setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
-            }
+            newState = newState.copy(key = field.text.toString())
             presenter.setKey(field.text.toString())
             copyKey()
         } else {
@@ -273,17 +304,12 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun resetKey() {
-        if(threadId == -1L) {
-            prefs.globalEncryptionKey.set("")
-        } else {
-            setEncryptionKey.execute(SetEncryptionKey.Params(threadId,""))
-            setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, false))
-        }
+        newState = newState.copy(key = "", keyEnabled = false)
         Toast.makeText(context, context.getText(R.string.settings_key_reset), Toast.LENGTH_SHORT).show()
     }
 
     override fun keyEnabled(enabled: Boolean) {
-        setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, enabled))
+        newState = newState.copy(keyEnabled = enabled)
     }
 
     private fun EditText.copyToClipboard(): Boolean {
@@ -295,15 +321,15 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun setDeleteEncryptedAfter(delay: Int) {
-        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.ENCRYPTED, delay))
+        newState = newState.copy(deleteEncryptedAfter = delay)
     }
 
     override fun setDeleteReceivedAfter(delay: Int) {
-        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.RECEIVED, delay))
+        newState = newState.copy(deleteReceivedAfter = delay)
     }
 
     override fun setDeleteSentAfter(delay: Int) {
-        setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.SENT, delay))
+        newState = newState.copy(deleteSentAfter = delay)
     }
 
     private fun validate(text: String): Boolean {
@@ -314,6 +340,21 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         } catch (ignored: IllegalArgumentException) {
             false
         }
+    }
+
+    private fun saveChanges() {
+        if(newState.isConversation) {
+            setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.ENCRYPTED, newState.deleteEncryptedAfter))
+            setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.RECEIVED, newState.deleteReceivedAfter))
+            setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.SENT, newState.deleteSentAfter))
+            setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, newState.keyEnabled))
+            setEncryptionKey.execute(SetEncryptionKey.Params(threadId, newState.key))
+            setEncodingScheme.execute(SetEncodingScheme.Params(threadId, newState.encodingScheme))
+        } else {
+            prefs.globalEncryptionKey.set(newState.key)
+            prefs.encodingScheme.set(newState.encodingScheme)
+        }
+        initialState = newState
     }
 
 }

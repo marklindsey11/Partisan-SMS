@@ -473,4 +473,5 @@
     <string name="drawer_plus">Пожертвовать</string>
     <string name="key_description">Поделитесь этим ключом с вашим собеседником по безопасной связи</string>
     <string name="settings_messages_delete">Удаление сообщений</string>
+    <string name="settings_exit_with_no_changes">Выйти без сохранения изменений?</string>
 </resources>

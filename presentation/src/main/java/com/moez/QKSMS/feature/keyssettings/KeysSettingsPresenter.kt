@@ -114,5 +114,4 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                 }
             }
     }
-
 }
