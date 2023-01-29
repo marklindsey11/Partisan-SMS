@@ -1,6 +1,5 @@
 package com.moez.QKSMS.feature.keyssettings
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -10,7 +9,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
-import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -32,7 +30,6 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
-import kotlinx.android.synthetic.main.settings_controller.*
 import kotlinx.android.synthetic.main.settings_keys_activity.*
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_switch_widget.view.*
@@ -96,7 +93,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
         settings_delete_sent_after.progress = state.deleteSentAfter
         settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
-        Log.w("KSC_", "$state")
     }
 
     override fun onViewCreated() {
@@ -289,7 +285,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         if(qrResult != null && qrResult.contents != null) {
             if(validate(qrResult.contents)) {
                 generatedKey = qrResult.contents
-                Log.w("KSC_oar", "$newState")
                 newState = newState.copy(key = qrResult.contents, keyEnabled = true)
                 Toast.makeText(context,"${context.getText(R.string.settings_key_has_been_set)}",Toast.LENGTH_LONG).show()
                 if(newState.isConversation) {
@@ -308,7 +303,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                         encodingScheme = newState.encodingScheme
                     )
                 }
-                Log.w("KSC_oar", "$newState")
             }
             else Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
         } else super.onActivityResult(requestCode, resultCode, data)
