@@ -10,9 +10,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.integration.android.IntentIntegrator
@@ -30,12 +32,10 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
+import kotlinx.android.synthetic.main.settings_controller.*
 import kotlinx.android.synthetic.main.settings_keys_activity.*
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
-import kotlinx.android.synthetic.main.settings_keys_activity.view.*
 import kotlinx.android.synthetic.main.settings_switch_widget.view.*
-import kotlinx.android.synthetic.main.text_input_dialog.*
-import kotlinx.android.synthetic.main.toolbar.*
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
@@ -66,9 +66,47 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         layoutRes = R.layout.settings_keys_activity
     }
 
-    override fun onActivityStarted(activity: Activity) {
-        super.onActivityStarted(activity)
-        threadId = activity.intent.getLongExtra("threadId", -1)
+    override fun preferenceClicks(): Observable<PreferenceView> = (0 until preferences.childCount)
+        .map { index -> preferences.getChildAt(index) }
+        .mapNotNull { view -> view as? PreferenceView }
+        .map { preference -> preference.clicks().map { preference } }
+        .let { preferences -> Observable.merge(preferences) }
+
+    override fun render(state: KeysSettingsState) {
+        encryptionKeyCategory.text =
+            if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
+            else context.getText(R.string.settings_encryption_key_title)
+
+        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
+
+        keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
+        scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
+        scanQr.isClickable = state.keyEnabled
+        generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
+        generateKey.isClickable = state.keyEnabled
+
+        resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
+        resetKey.isClickable = state.key.isNotBlank()
+        resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
+
+        settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
+        settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
+        settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
+        settings_delete_received_after.progress = state.deleteReceivedAfter
+        settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
+        settings_delete_sent_after.progress = state.deleteSentAfter
+        settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
+        Log.w("KSC_", "$state")
+    }
+
+    override fun onViewCreated() {
+        super.onViewCreated()
+        threadId = requireActivity().intent.getLongExtra("threadId", -1)
+        val currentScheme = if(threadId == -1L) prefs.encodingScheme.get()
+        else conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: 0
+        encodingSchemes = context.resources.getStringArray(R.array.encoding_scheme_labels)
+        deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
+        schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
 
         if(threadId == -1L) {
             newState = newState.copy(
@@ -106,56 +144,9 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             )
             schemesListAdapter.setSelected(conversation?.encodingSchemeId ?: 0)
         }
-    }
 
-    override fun preferenceClicks(): Observable<PreferenceView> = (0 until preferences.childCount)
-        .map { index -> preferences.getChildAt(index) }
-        .mapNotNull { view -> view as? PreferenceView }
-        .map { preference -> preference.clicks().map { preference } }
-        .let { preferences -> Observable.merge(preferences) }
 
-    override fun buttonClicks(): Observable<ImageButton> = (0 until keyInputGroup.buttons.childCount)
-        .map { index -> keyInputGroup.buttons.getChildAt(index) }
-        .mapNotNull { view -> view as? ImageButton }
-        .map { buttons -> buttons.clicks().map { buttons } }
-        .let { buttons -> Observable.merge(buttons) }
-
-    override fun render(state: KeysSettingsState) {
-        encryptionKeyCategory.text =
-            if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
-            else context.getText(R.string.settings_encryption_key_title)
-
-        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
-
-        keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
-        scanQr.isClickable = state.keyEnabled
-        generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
-        generateKey.isClickable = state.keyEnabled
-
-        resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
-        resetKey.isClickable = state.key.isNotBlank()
-        resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
-
-        settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
-        settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
-        settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
-        settings_delete_received_after.progress = state.deleteReceivedAfter
-        settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
-        settings_delete_sent_after.progress = state.deleteSentAfter
-        settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
-    }
-
-    override fun onViewCreated() {
-        super.onViewCreated()
         preferences.postDelayed( { preferences?.animateLayoutChanges = true }, 100)
-
-        encodingSchemes = context.resources.getStringArray(R.array.encoding_scheme_labels)
-        deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
-
-        val currentScheme = if(threadId == -1L) prefs.encodingScheme.get()
-            else conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: 0
-        schemesListAdapter = KeysSettingsListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
         encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)
         encodingSchemesRecycler.adapter = schemesListAdapter
 
@@ -199,6 +190,15 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 override fun onStopTrackingTouch(p0: SeekBar?) {}
             }
         )
+        field.doOnTextChanged { text, _, _, _ ->
+            if(validate(text.toString())) {
+                newState = newState.copy(key = text.toString())
+                Toast.makeText(context, R.string.settings_key_has_been_set, Toast.LENGTH_SHORT).show()
+            } else field.error = context.getText(R.string.settings_bad_key)
+        }
+        copyKey.setOnClickListener {
+            copyKey()
+        }
     }
 
     override fun onAttach(view: View) {
@@ -258,6 +258,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 bitmap.setPixel(i,j, if(matrix[i,j]) Color.BLACK else Color.WHITE)
             }
         qrCodeImage.setImageBitmap(bitmap)
+        newState = newState.copy(key = generatedKey)
+        presenter.setKey(newState.key)
     }
 
     override fun selectEncodingScheme(schemeId: Int) {
@@ -287,21 +289,29 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         if(qrResult != null && qrResult.contents != null) {
             if(validate(qrResult.contents)) {
                 generatedKey = qrResult.contents
-                Toast.makeText(context,"${context.getText(R.string.settings_key_from_qr_set)}: ${qrResult.contents}",Toast.LENGTH_LONG).show()
-                newState = newState.copy(key = generatedKey)
+                Log.w("KSC_oar", "$newState")
+                newState = newState.copy(key = qrResult.contents, keyEnabled = true)
+                Toast.makeText(context,"${context.getText(R.string.settings_key_has_been_set)}",Toast.LENGTH_LONG).show()
+                if(newState.isConversation) {
+                    presenter.setConversationParameters(
+                        keyEnabled = true,
+                        key = generatedKey,
+                        encodingScheme = newState.encodingScheme,
+                        deleteEncryptedAfter = newState.deleteEncryptedAfter,
+                        deleteReceivedAfter = newState.deleteReceivedAfter,
+                        deleteSentAfter = newState.deleteSentAfter
+                    )
+                } else {
+                    presenter.setGlobalParameters(
+                        keyEnabled = true,
+                        key = generatedKey,
+                        encodingScheme = newState.encodingScheme
+                    )
+                }
+                Log.w("KSC_oar", "$newState")
             }
             else Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
         } else super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    override fun setKey() {
-        if(validate(field.text.toString())) {
-            newState = newState.copy(key = field.text.toString())
-            presenter.setKey(field.text.toString())
-            copyKey()
-        } else {
-            Toast.makeText(context, context.getText(R.string.settings_bad_key), Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun resetKey() {

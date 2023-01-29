@@ -78,7 +78,9 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                             }
                         }
                     }
-                    R.id.scanQr -> view.scanQrCode()
+                    R.id.scanQr -> {
+                        view.scanQrCode()
+                    }
                     R.id.generateKey -> {
                         newState {
                             if(!keySettingsIsShown) view.generateKey()
@@ -95,20 +97,6 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                             resetCheckIsShown = false,
                             keyEnabled = false,
                             key = ""
-                        ) }
-                    }
-                }
-            }
-
-        view.buttonClicks()
-            .autoDisposable(view.scope())
-            .subscribe {
-                when (it.id) {
-                    R.id.setGlobalKey -> {
-                        view.setKey()
-                        newState { copy(
-                            keySettingsIsShown = false,
-                            keyEnabled = true,
                         ) }
                     }
                 }

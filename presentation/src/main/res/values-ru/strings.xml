@@ -443,7 +443,7 @@
     <string name="settings_generate_new_key">Сгенерировать или вставить новый ключ</string>
     <string name="settings_scan_qr_title">Сканировать QR-код с ключом</string>
     <string name="settings_reset_key">Сбросить ключ</string>
-    <string name="settings_key_from_qr_set">Ключ установлен</string>
+    <string name="settings_key_has_been_set">Ключ установлен</string>
     <string name="settings_bad_key">Неверный ключ</string>
     <string name="settings_key_reset">Ключ сброшен</string>
     <string name="settings_reset_global_key_sure">Я уверен</string>

@@ -531,7 +531,7 @@
     <string name="button_generate">&#128259;</string>
     <string name="key_description">Share this key with your interlocutor for a secure messaging</string>
     <string name="settings_reset_key">Reset encryption key</string>
-    <string name="settings_key_from_qr_set">Key has been set</string>
+    <string name="settings_key_has_been_set">Key has been set</string>
     <string name="settings_bad_key">Bad key!</string>
     <string name="settings_key_reset">Key has been reset</string>
     <string name="settings_reset_global_key_sure">I am sure</string>
