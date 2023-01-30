@@ -35,6 +35,8 @@ import com.moez.QKSMS.feature.blocking.messages.BlockedMessagesController
 import com.moez.QKSMS.feature.blocking.numbers.BlockedNumbersController
 import com.moez.QKSMS.feature.compose.editing.DetailedChipView
 import com.moez.QKSMS.feature.conversationinfo.injection.ConversationInfoComponent
+import com.moez.QKSMS.feature.keyssettings.KeysSettingsController
+import com.moez.QKSMS.feature.keyssettings.KeysSettingsView
 import com.moez.QKSMS.feature.settings.SettingsController
 import com.moez.QKSMS.feature.settings.about.AboutController
 import com.moez.QKSMS.feature.settings.swipe.SwipeActionsController
@@ -68,6 +70,7 @@ interface AppComponent {
     fun inject(controller: BlockingController)
     fun inject(controller: BlockingManagerController)
     fun inject(controller: SettingsController)
+    fun inject(controller: KeysSettingsController)
     fun inject(controller: SwipeActionsController)
 
     fun inject(dialog: QkDialog)

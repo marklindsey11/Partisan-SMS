@@ -36,6 +36,7 @@ import com.moez.QKSMS.feature.blocking.BlockingActivity
 import com.moez.QKSMS.feature.compose.ComposeActivity
 import com.moez.QKSMS.feature.conversationinfo.ConversationInfoActivity
 import com.moez.QKSMS.feature.gallery.GalleryActivity
+import com.moez.QKSMS.feature.keyssettings.KeysSettingsActivity
 import com.moez.QKSMS.feature.notificationprefs.NotificationPrefsActivity
 import com.moez.QKSMS.feature.plus.PlusActivity
 import com.moez.QKSMS.feature.scheduled.ScheduledActivity
@@ -103,6 +104,18 @@ class Navigator @Inject constructor(
             intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(images))
         }
 
+        startActivity(intent)
+    }
+
+    fun showKeysSettings() {
+        val intent = Intent(context, KeysSettingsActivity::class.java)
+            .putExtra("threadId", -1L)
+        startActivity(intent)
+    }
+
+    fun showConversationKeySettings(threadId: Long) {
+        val intent = Intent(context, KeysSettingsActivity::class.java)
+            .putExtra("threadId", threadId)
         startActivity(intent)
     }
 

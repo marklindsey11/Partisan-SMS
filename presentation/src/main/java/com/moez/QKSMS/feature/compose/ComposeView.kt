@@ -23,6 +23,7 @@ import androidx.annotation.StringRes
 import androidx.core.view.inputmethod.InputContentInfoCompat
 import com.moez.QKSMS.common.base.QkView
 import com.moez.QKSMS.model.Attachment
+import com.moez.QKSMS.model.Conversation
 import com.moez.QKSMS.model.Recipient
 import io.reactivex.Observable
 import io.reactivex.subjects.Subject
@@ -53,9 +54,9 @@ interface ComposeView : QkView<ComposeState> {
     val scheduleCancelIntent: Observable<*>
     val changeSimIntent: Observable<*>
     val sendIntent: Observable<Unit>
-    val sendRawIntent: Observable<Unit>
     val viewQksmsPlusIntent: Subject<Unit>
     val backPressedIntent: Observable<Unit>
+    val setEncryptionKeyIntent: Subject<Pair<Conversation, String>>
 
     fun clearSelection()
     fun showDetails(details: String)
@@ -72,5 +73,6 @@ interface ComposeView : QkView<ComposeState> {
     fun setDraft(draft: String)
     fun scrollToMessage(id: Long)
     fun showQksmsPlusSnackbar(@StringRes message: Int)
+    fun showEncryptionKeyDialog(conversation: Conversation)
 
 }

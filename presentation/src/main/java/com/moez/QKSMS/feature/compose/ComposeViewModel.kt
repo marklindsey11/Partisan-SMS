@@ -24,6 +24,7 @@ import android.os.Vibrator
 import android.provider.ContactsContract
 import android.telephony.SmsMessage
 import android.util.Base64
+import android.util.Log
 import androidx.core.content.getSystemService
 import by.cyberpartisan.psms.PSmsEncryptor
 import com.moez.QKSMS.R
@@ -38,12 +39,7 @@ import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.extensions.isImage
 import com.moez.QKSMS.extensions.isVideo
 import com.moez.QKSMS.extensions.mapNotNull
-import com.moez.QKSMS.interactor.AddScheduledMessage
-import com.moez.QKSMS.interactor.CancelDelayedMessage
-import com.moez.QKSMS.interactor.DeleteMessages
-import com.moez.QKSMS.interactor.MarkRead
-import com.moez.QKSMS.interactor.RetrySending
-import com.moez.QKSMS.interactor.SendMessage
+import com.moez.QKSMS.interactor.*
 import com.moez.QKSMS.manager.ActiveConversationManager
 import com.moez.QKSMS.manager.BillingManager
 import com.moez.QKSMS.manager.PermissionManager
@@ -64,12 +60,16 @@ import com.uber.autodispose.autoDisposable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
+import io.reactivex.rxkotlin.combineLatest
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -99,7 +99,9 @@ class ComposeViewModel @Inject constructor(
     private val prefs: Preferences,
     private val retrySending: RetrySending,
     private val sendMessage: SendMessage,
-    private val subscriptionManager: SubscriptionManagerCompat
+    private val subscriptionManager: SubscriptionManagerCompat,
+    private val setEncryptionKey: SetEncryptionKey,
+    private val setEncryptionEnabled: SetEncryptionEnabled
 ) : QkViewModel<ComposeView, ComposeState>(ComposeState(
         editingMode = threadId == 0L && addresses.isEmpty(),
         threadId = threadId,
@@ -218,11 +220,15 @@ class ComposeViewModel @Inject constructor(
             }
         }.subscribe()
 
-        val globalKeyObservable = prefs.globalEncryptionKey.asObservable()
-        val conversationKeyObservable = conversation.map { conversation -> conversation.encryptionKey }
-        disposables += Observables.combineLatest(globalKeyObservable, conversationKeyObservable)
-                .subscribe { (globalKey, conversationKey) ->
-                    newState { copy(encrypted = globalKey.isNotEmpty() || conversationKey.isNotEmpty()) }
+        val encryptionEnabledObservable = conversation.map { conversation -> conversation.encryptionEnabled }
+        val conversationIdObservable = conversation.map { conversation -> conversation.id }
+        disposables += Observables.combineLatest(encryptionEnabledObservable, conversationIdObservable)
+                .subscribe { (encryptionEnabled, conversationId) ->
+                    newState { copy(
+                        encrypted = encryptionEnabled,
+                        encryptionEnabled = encryptionEnabled,
+                        messages = Pair(conversationRepo.getConversation(conversationId)!!, messageRepo.getMessages(conversationId))
+                    ) }
                 }
 
         val latestSubId = messages
@@ -321,15 +327,25 @@ class ComposeViewModel @Inject constructor(
         // Copy the message contents
         view.optionsItemIntent
                 .filter { it == R.id.copy }
-                .withLatestFrom(view.messagesSelectedIntent) { _, messageIds ->
+                .withLatestFrom(view.messagesSelectedIntent, conversation) { _, messageIds, conversation ->
+                    val encryptionKey = conversation.encryptionKey
+                        .takeIf { it.isNotEmpty() }
+                        ?: prefs.globalEncryptionKey.get()
+                            .takeIf { it.isNotEmpty() }
+
                     val messages = messageIds.mapNotNull(messageRepo::getMessage).sortedBy { it.date }
+
+                    fun Message.getDecodedText() = encryptionKey?.let {
+                        PSmsEncryptor().tryDecode(getText(), Base64.decode(encryptionKey, Base64.DEFAULT)).text
+                    } ?: getText()
+
                     val text = when (messages.size) {
-                        1 -> messages.first().getText()
+                        1 -> messages.first().getDecodedText()
                         else -> messages.foldIndexed("") { index, acc, message ->
                             when {
-                                index == 0 -> message.getText()
-                                messages[index - 1].compareSender(message) -> "$acc\n${message.getText()}"
-                                else -> "$acc\n\n${message.getText()}"
+                                index == 0 -> message.getDecodedText()
+                                messages[index - 1].compareSender(message) -> "$acc\n${message.getDecodedText()}"
+                                else -> "$acc\n\n${message.getDecodedText()}"
                             }
                         }
                     }
@@ -645,11 +661,15 @@ class ComposeViewModel @Inject constructor(
         view.sendIntent
                 .filter { permissionManager.isDefaultSms().also { if (!it) view.requestDefaultSms() } }
                 .filter { permissionManager.hasSendSms().also { if (!it) view.requestSmsPermission() } }
-                .withLatestFrom(view.textChangedIntent, conversation) { _, body, conversation ->
-                    val encryptionKey = conversation.encryptionKey
-                        .takeIf { it.isNotEmpty() }
-                        ?: prefs.globalEncryptionKey.get()
+                .withLatestFrom(view.textChangedIntent, conversation, state) { _, body, conversation, state ->
+                    val encryptionKey = if (state.encryptionEnabled) {
+                        conversation.encryptionKey
                             .takeIf { it.isNotEmpty() }
+                            ?: prefs.globalEncryptionKey.get()
+                                .takeIf { it.isNotEmpty() }
+                    } else {
+                        null
+                    }
 
                     encryptionKey?.let {
                         val encryptionSchemeId = conversation.encodingSchemeId
@@ -663,84 +683,6 @@ class ComposeViewModel @Inject constructor(
                         )
                     } ?: body
                 }
-                .map { body -> body.toString() }
-                .withLatestFrom(state, attachments, conversation, selectedChips) { body, state, attachments,
-                                                                                   conversation, chips ->
-                    val subId = state.subscription?.subscriptionId ?: -1
-                    val addresses = when (conversation.recipients.isNotEmpty()) {
-                        true -> conversation.recipients.map { it.address }
-                        false -> chips.map { chip -> chip.address }
-                    }
-                    val delay = when (prefs.sendDelay.get()) {
-                        Preferences.SEND_DELAY_SHORT -> 3000
-                        Preferences.SEND_DELAY_MEDIUM -> 5000
-                        Preferences.SEND_DELAY_LONG -> 10000
-                        else -> 0
-                    }
-                    val sendAsGroup = !state.editingMode || state.sendAsGroup
-
-                    when {
-                        // Scheduling a message
-                        state.scheduled != 0L -> {
-                            newState { copy(scheduled = 0) }
-                            val uris = attachments
-                                    .mapNotNull { it as? Attachment.Image }
-                                    .map { it.getUri() }
-                                    .map { it.toString() }
-                            val params = AddScheduledMessage
-                                    .Params(state.scheduled, subId, addresses, sendAsGroup, body, uris)
-                            addScheduledMessage.execute(params)
-                            context.makeToast(R.string.compose_scheduled_toast)
-                        }
-
-                        // Sending a group message
-                        sendAsGroup -> {
-                            sendMessage.execute(SendMessage
-                                    .Params(subId, conversation.id, addresses, body, attachments, delay))
-                        }
-
-                        // Sending a message to an existing conversation with one recipient
-                        conversation.recipients.size == 1 -> {
-                            val address = conversation.recipients.map { it.address }
-                            sendMessage.execute(SendMessage.Params(subId, threadId, address, body, attachments, delay))
-                        }
-
-                        // Create a new conversation with one address
-                        addresses.size == 1 -> {
-                            sendMessage.execute(SendMessage
-                                    .Params(subId, threadId, addresses, body, attachments, delay))
-                        }
-
-                        // Send a message to multiple addresses
-                        else -> {
-                            addresses.forEach { addr ->
-                                val threadId = tryOrNull(false) {
-                                    TelephonyCompat.getOrCreateThreadId(context, addr)
-                                } ?: 0
-                                val address = listOf(conversationRepo
-                                        .getConversation(threadId)?.recipients?.firstOrNull()?.address ?: addr)
-                                sendMessage.execute(SendMessage
-                                        .Params(subId, threadId, address, body, attachments, delay))
-                            }
-                        }
-                    }
-
-                    view.setDraft("")
-                    this.attachments.onNext(ArrayList())
-
-                    if (state.editingMode) {
-                        newState { copy(editingMode = false, hasError = !sendAsGroup) }
-                    }
-                    //deleteMessages.execute(DeleteMessages.Params(longArrayOf() , conversation.id))
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
-
-        // Send a RAW message when the send button is clicked, and disable editing mode if it's enabled
-        view.sendRawIntent
-                .filter { permissionManager.isDefaultSms().also { if (!it) view.requestDefaultSms() } }
-                .filter { permissionManager.hasSendSms().also { if (!it) view.requestSmsPermission() } }
-                .withLatestFrom(view.textChangedIntent, conversation) { _, body, conversation -> body }
                 .map { body -> body.toString() }
                 .withLatestFrom(state, attachments, conversation, selectedChips) { body, state, attachments,
                                                                                    conversation, chips ->
@@ -833,6 +775,45 @@ class ComposeViewModel @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe()
 
+        // Enable encryption
+        view.optionsItemIntent
+                .filter { it == R.id.raw }
+                .withLatestFrom(conversation) { _, conversation ->
+                    (conversation.encryptionKey.isNotEmpty() || prefs.globalEncryptionKey.get().isNotEmpty()).also {
+                        if (!it) view.showEncryptionKeyDialog(conversation)
+                    }
+                    SetEncryptionEnabled.Params(conversation.id, true)
+                }
+                .autoDisposable(view.scope())
+                .subscribe {
+                    setEncryptionEnabled.execute(it) {
+                        newState { copy(
+                            encryptionEnabled = true,
+                            encrypted = true
+                        ) }
+                    }
+                }
+
+        // Disable encryption
+        view.optionsItemIntent
+            .filter { it == R.id.encrypted }
+            .withLatestFrom(conversation) { _, conversation ->
+                SetEncryptionEnabled.Params(conversation.id, false)
+            }
+            .autoDisposable(view.scope())
+            .subscribe{
+                setEncryptionEnabled.execute(it) {
+                    newState { copy(
+                        encryptionEnabled = false,
+                        encrypted = false
+                    ) }
+                }
+            }
+
+        view.setEncryptionKeyIntent
+                .map { SetEncryptionKey.Params(it.first.id, it.second) }
+                .autoDisposable(view.scope())
+                .subscribe(setEncryptionKey::execute)
     }
 
     private fun getVCard(contactData: Uri): String? {
