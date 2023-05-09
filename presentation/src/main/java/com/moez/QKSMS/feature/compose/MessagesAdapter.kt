@@ -303,7 +303,7 @@ class MessagesAdapter @Inject constructor(
 
         val decryptedMessage = if (conversation != null && conversation!!.encryptionKey.isNotEmpty() && conversation!!.encryptionEnabled) {
             PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(conversation!!.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty() && conversation!!.encryptionEnabled) {
+        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
             PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
         } else {
             PSmsMessage(messageText.toString())
@@ -313,6 +313,20 @@ class MessagesAdapter @Inject constructor(
             holder.body.text = decryptedMessage.text + " (${channelIdStr}: ${decryptedMessage.channelId})"
         } else {
             holder.body.text = decryptedMessage.text
+        }
+
+        if (decryptedMessage.isLegacy) {
+            if (message.isMe()) {
+                holder.encrypted_out.setImageResource(android.R.drawable.ic_partial_secure)
+            } else {
+                holder.encrypted_in.setImageResource(android.R.drawable.ic_partial_secure)
+            }
+        } else {
+            if (message.isMe()) {
+                holder.encrypted_out.setImageResource(android.R.drawable.ic_secure)
+            } else {
+                holder.encrypted_in.setImageResource(android.R.drawable.ic_secure)
+            }
         }
 
         holder.body.setVisible(message.isSms() || messageText.isNotBlank())
