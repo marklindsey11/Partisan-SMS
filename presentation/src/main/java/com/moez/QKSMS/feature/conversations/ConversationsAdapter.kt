@@ -123,7 +123,7 @@ class ConversationsAdapter @Inject constructor(
 
         val snippetMessage = if (conversation.encryptionKey.isNotEmpty() && conversation.encryptionEnabled) {
             PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty() && conversation.encryptionEnabled) {
+        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
             PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
         } else {
             PSmsMessage(conversation.snippet ?: "")
