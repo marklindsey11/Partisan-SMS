@@ -102,12 +102,14 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         enableKey.checkbox.isChecked = state.keyEnabled
 
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
+        scanQr.alpha = if (state.keyEnabled) 1f else 0.5f
         scanQr.isClickable = state.keyEnabled
-        generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
+        generateKey.alpha = if (state.keyEnabled) 1f else 0.5f
         generateKey.isClickable = state.keyEnabled
         field.setBackgroundTint(colors.theme().theme)
 
+
+        encodingSchemesRecycler.alpha = if (state.keyEnabled) 1f else 0.5f
         for (i in 0 until encodingSchemesRecycler.childCount) {
             val button = (encodingSchemesRecycler.findViewHolderForAdapterPosition(i)?.itemView as AppCompatRadioButton?)
             button?.let {
@@ -121,6 +123,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                     )
                 )
                 it.buttonTintList = colorStateList
+                it.isClickable = state.keyEnabled
             }
         }
 
@@ -249,7 +252,13 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
-            R.id.confirm -> saveChanges()
+            R.id.confirm -> {
+                if(newState == initialState) {
+                    requireActivity().finish()
+                }
+                saveChanges()
+                requireActivity().finish()
+            }
         }
         return true
     }
@@ -258,18 +267,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         if(newState == initialState) {
             return super.handleBack()
         }
-        AlertDialog.Builder(this.activity)
-            .setMessage(R.string.settings_exit_with_no_changes)
-            .setNegativeButton(R.string.rate_dismiss) { _, _ ->
-                newState = initialState
-                requireActivity().finish()
-            }
-            .setPositiveButton(R.string.button_save) { _, _ ->
-                saveChanges()
-                requireActivity().finish()
-            }
-            .create()
-            .show()
+        showSaveDialog()
         return true
     }
 
@@ -380,6 +378,21 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                     keySettingsIsShown = false,
                     keyEnabled = false,
                     key = "")
+            }
+            .create()
+            .show()
+    }
+
+    private fun showSaveDialog() {
+        AlertDialog.Builder(this.activity)
+            .setMessage(R.string.settings_exit_with_no_changes)
+            .setNegativeButton(R.string.rate_dismiss) { _, _ ->
+                newState = initialState
+                requireActivity().finish()
+            }
+            .setPositiveButton(R.string.button_save) { _, _ ->
+                saveChanges()
+                requireActivity().finish()
             }
             .create()
             .show()
