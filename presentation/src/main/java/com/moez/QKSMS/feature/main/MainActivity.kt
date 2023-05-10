@@ -237,7 +237,7 @@ class MainActivity : QkThemedActivity(), MainView {
         with(keysSettingsIsSet) {
             if (state.keysIsUnset) {
                 setImageResource(R.drawable.ic_lock_open_24dp)
-                setTint(Color.RED)
+                setTint(colors.theme().theme)
             } else {
                 setImageResource(R.drawable.ic_lock_24dp)
                 setTint(Color.GRAY)

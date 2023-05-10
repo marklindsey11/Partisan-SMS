@@ -46,7 +46,7 @@
                 android:layout_height="32dp"
                 android:paddingEnd="8dp"
                 android:src="@drawable/ic_lock_open_24dp"
-                android:tint="#ffff3030" />
+                android:tint="@color/tools_theme" />
 
             <com.moez.QKSMS.common.widget.QkTextView
                 android:id="@+id/toolbarTitle"
