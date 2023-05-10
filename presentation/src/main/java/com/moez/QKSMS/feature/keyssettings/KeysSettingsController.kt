@@ -124,10 +124,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             }
         }
 
-
-        //encodingSchemesRecycler.findViewHolderForAdapterPosition(0)?.itemView?.setBackgroundTint(colors.theme().theme)
-        //encodingSchemesRecycler.setBackgroundTint(colors.theme().theme)
-
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
         settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
