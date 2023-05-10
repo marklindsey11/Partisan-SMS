@@ -56,26 +56,38 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
         newState { copy(deleteSentAfter = delay) }
     }
 
+    fun disableKey() {
+        newState { copy(keySettingsIsShown = false, keyEnabled = false, key = "") }
+    }
+
     override fun bindIntents(view: KeysSettingsView) {
         super.bindIntents(view)
 
         view.preferenceClicks()
             .autoDisposable(view.scope())
             .subscribe {
-                when(it.id) {
+                when (it.id) {
                     R.id.enableKey -> {
                         newState {
-                            if(isConversation) {
+                            if (isConversation) {
                                 view.keyEnabled(!keyEnabled)
                                 copy(keyEnabled = !keyEnabled)
-                            } else {
-                                if(!keyEnabled) copy(keyEnabled = true)
-                                else if(key.isBlank()) copy(
+                            } else if (!keyEnabled) {
+                                view.generateKey()
+                                copy(
+                                    keyEnabled = true,
+                                    keySettingsIsShown = true
+                                )
+                            } else if (key.isBlank()) {
+                                copy(
                                     keyEnabled = false,
                                     keySettingsIsShown = false
                                 )
-                                else copy(resetCheckIsShown = true)
+                            } else {
+                                view.showDeleteDialog()
+                                copy()
                             }
+
                         }
                     }
                     R.id.scanQr -> {
@@ -83,21 +95,9 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                     }
                     R.id.generateKey -> {
                         newState {
-                            if(!keySettingsIsShown) view.generateKey()
+                            if (!keySettingsIsShown) view.generateKey()
                             copy(keySettingsIsShown = !keySettingsIsShown)
                         }
-                    }
-                    R.id.resetKey -> {
-                        newState { copy(resetCheckIsShown = !resetCheckIsShown) }
-                    }
-                    R.id.resetKeyCheck -> {
-                        view.resetKey()
-                        newState { copy(
-                            keySettingsIsShown = false,
-                            resetCheckIsShown = false,
-                            keyEnabled = false,
-                            key = ""
-                        ) }
                     }
                 }
             }

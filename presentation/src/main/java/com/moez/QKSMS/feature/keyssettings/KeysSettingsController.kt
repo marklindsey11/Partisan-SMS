@@ -36,7 +36,7 @@ import kotlinx.android.synthetic.main.settings_switch_widget.view.*
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
-class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView, DialogInterface.OnClickListener {
+class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView {
 
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
     @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
@@ -74,17 +74,13 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_encryption_key_title)
 
-        enableKey.checkbox.isChecked = if(!state.isConversation) state.key.isNotBlank() else state.keyEnabled
+        enableKey.checkbox.isChecked = state.keyEnabled
 
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
         scanQr.alpha = if(state.keyEnabled) 1f else 0.5f
         scanQr.isClickable = state.keyEnabled
         generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
         generateKey.isClickable = state.keyEnabled
-
-        resetKey.alpha = if(state.key.isNotBlank()) 1f else 0.5f
-        resetKey.isClickable = state.key.isNotBlank()
-        resetKeyCheck.visibility = if(state.resetCheckIsShown) View.VISIBLE else View.GONE
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
@@ -217,27 +213,22 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun handleBack(): Boolean {
-        return if(newState == initialState) super.handleBack()
-        else {
-            AlertDialog.Builder(this.activity)
-                .setMessage(R.string.settings_exit_with_no_changes)
-                .setNegativeButton(R.string.rate_dismiss, this)
-                .setPositiveButton(R.string.button_save, this)
-                .create()
-                .show()
-            true
+        if(newState == initialState) {
+            return super.handleBack()
         }
-    }
-
-    override fun onClick(dialog: DialogInterface?, button: Int) {
-        if(button == AlertDialog.BUTTON_NEGATIVE) {
-            newState = initialState
-            requireActivity().finish()
-        }
-        if(button == AlertDialog.BUTTON_POSITIVE) {
-            saveChanges()
-            requireActivity().finish()
-        }
+        AlertDialog.Builder(this.activity)
+            .setMessage(R.string.settings_exit_with_no_changes)
+            .setNegativeButton(R.string.rate_dismiss) { _, _ ->
+                newState = initialState
+                requireActivity().finish()
+            }
+            .setPositiveButton(R.string.button_save) { _, _ ->
+                saveChanges()
+                requireActivity().finish()
+            }
+            .create()
+            .show()
+        return true
     }
 
     override fun generateKey() {
@@ -335,6 +326,21 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
     override fun setDeleteSentAfter(delay: Int) {
         newState = newState.copy(deleteSentAfter = delay)
+    }
+
+    override fun showDeleteDialog() {
+        AlertDialog.Builder(this.activity)
+            .setMessage(R.string.settings_delete_ecnryption_key)
+            .setNegativeButton(R.string.button_cancel, null)
+            .setPositiveButton(R.string.button_delete) { _, _ ->
+                presenter.disableKey()
+                newState = newState.copy(
+                    keySettingsIsShown = false,
+                    keyEnabled = false,
+                    key = "")
+            }
+            .create()
+            .show()
     }
 
     private fun validate(text: String): Boolean {

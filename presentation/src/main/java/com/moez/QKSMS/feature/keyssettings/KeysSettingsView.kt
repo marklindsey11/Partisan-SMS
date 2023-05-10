@@ -16,5 +16,6 @@ interface KeysSettingsView : QkViewContract<KeysSettingsState> {
     fun setDeleteEncryptedAfter(delay: Int)
     fun setDeleteReceivedAfter(delay: Int)
     fun setDeleteSentAfter(delay: Int)
+    fun showDeleteDialog()
 
 }
