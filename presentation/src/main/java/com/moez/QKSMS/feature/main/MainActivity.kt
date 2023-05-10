@@ -194,6 +194,11 @@ class MainActivity : QkThemedActivity(), MainView {
         if (Build.VERSION.SDK_INT <= 22) {
             toolbarSearch.setBackgroundTint(resolveThemeColor(R.attr.bubbleColor))
         }
+        if (prefs.globalEncryptionKey.get().isEmpty()) {
+            Snackbar.make(drawerLayout, R.string.global_key_isnt_set, Snackbar.LENGTH_LONG)
+                .setAction(R.string.global_key_set) { navigator.showKeysSettings() }
+                .show()
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -343,11 +348,6 @@ class MainActivity : QkThemedActivity(), MainView {
     override fun onResume() {
         super.onResume()
         activityResumedIntent.onNext(true)
-        if(prefs.globalEncryptionKey.get().isEmpty()) {
-            Snackbar.make(drawerLayout, R.string.global_key_isnt_set, Snackbar.LENGTH_LONG)
-                .setAction(R.string.global_key_set) { navigator.showKeysSettings() }
-                .show()
-        }
     }
 
     override fun onPause() {
