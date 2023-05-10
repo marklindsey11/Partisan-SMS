@@ -32,6 +32,7 @@ import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.FontProvider
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
+import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
@@ -124,10 +125,16 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
+        settings_delete_encrypted_after.setTint(colors.theme().theme)
+        settings_delete_encrypted_after.thumb.setTint(colors.theme().theme)
         settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
         settings_delete_received_after.progress = state.deleteReceivedAfter
+        settings_delete_received_after.setTint(colors.theme().theme)
+        settings_delete_received_after.thumb.setTint(colors.theme().theme)
         settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
         settings_delete_sent_after.progress = state.deleteSentAfter
+        settings_delete_sent_after.setTint(colors.theme().theme)
+        settings_delete_sent_after.thumb.setTint(colors.theme().theme)
         settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
     }
 
