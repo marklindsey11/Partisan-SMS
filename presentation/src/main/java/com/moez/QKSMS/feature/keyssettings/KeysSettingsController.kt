@@ -4,13 +4,19 @@ import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Base64
-import android.view.*
-import android.widget.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.widget.EditText
+import android.widget.SeekBar
+import android.widget.Toast
+import androidx.appcompat.widget.AppCompatRadioButton
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,7 +26,9 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.base.QkController
+import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
+import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
@@ -30,17 +38,34 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
-import kotlinx.android.synthetic.main.settings_keys_activity.*
+import kotlinx.android.synthetic.main.settings_keys_activity.copyKey
+import kotlinx.android.synthetic.main.settings_keys_activity.enableKey
+import kotlinx.android.synthetic.main.settings_keys_activity.encodingSchemesRecycler
+import kotlinx.android.synthetic.main.settings_keys_activity.encryptionKeyCategory
+import kotlinx.android.synthetic.main.settings_keys_activity.field
+import kotlinx.android.synthetic.main.settings_keys_activity.generateKey
+import kotlinx.android.synthetic.main.settings_keys_activity.keyInputGroup
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
-import kotlinx.android.synthetic.main.settings_switch_widget.view.*
+import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
+import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_encrypted_after
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_encrypted_after_pref
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_received_after
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_received_after_pref
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_sent_after
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_sent_after_pref
+import kotlinx.android.synthetic.main.settings_keys_activity.settings_deletion
+import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
+
 
 class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView {
 
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
     @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
     @Inject lateinit var setEncodingScheme: SetEncodingScheme
+    @Inject lateinit var colors: Colors
     @Inject lateinit var context: Context
     @Inject lateinit var prefs: Preferences
     @Inject lateinit var conversationsRepo: ConversationRepository
@@ -81,6 +106,27 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         scanQr.isClickable = state.keyEnabled
         generateKey.alpha = if(state.keyEnabled) 1f else 0.5f
         generateKey.isClickable = state.keyEnabled
+        field.setBackgroundTint(colors.theme().theme)
+
+        for (i in 0 until encodingSchemesRecycler.childCount) {
+            val button = (encodingSchemesRecycler.findViewHolderForAdapterPosition(i)?.itemView as AppCompatRadioButton?)
+            button?.let {
+                val colorStateList = ColorStateList(
+                    arrayOf(
+                        intArrayOf(-android.R.attr.state_checked),
+                        intArrayOf(android.R.attr.state_checked)
+                    ), intArrayOf(
+                        it.currentHintTextColor,
+                        colors.theme().theme
+                    )
+                )
+                it.buttonTintList = colorStateList
+            }
+        }
+
+
+        //encodingSchemesRecycler.findViewHolderForAdapterPosition(0)?.itemView?.setBackgroundTint(colors.theme().theme)
+        //encodingSchemesRecycler.setBackgroundTint(colors.theme().theme)
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
         settings_delete_encrypted_after.progress = state.deleteEncryptedAfter

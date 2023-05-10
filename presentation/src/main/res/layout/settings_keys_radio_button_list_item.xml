@@ -3,10 +3,12 @@
 <RadioButton
     android:id="@+id/listRadio"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingHorizontal="16dp"
     android:paddingVertical="8dp"
     android:text="@string/encoding_scheme"
+    tools:tint="?android:attr/textColorTertiary"
     />
 
