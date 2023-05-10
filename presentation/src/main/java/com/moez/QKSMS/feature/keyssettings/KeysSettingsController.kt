@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Typeface
 import android.util.Base64
 import android.view.Menu
 import android.view.MenuInflater
@@ -18,6 +19,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRadioButton
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.zxing.BarcodeFormat
@@ -27,6 +29,7 @@ import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
+import com.moez.QKSMS.common.util.FontProvider
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.widget.PreferenceView
@@ -38,6 +41,8 @@ import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
+import kotlinx.android.synthetic.main.radio_preference_view.radioButton
+import kotlinx.android.synthetic.main.settings_controller.view.systemFont
 import kotlinx.android.synthetic.main.settings_keys_activity.copyKey
 import kotlinx.android.synthetic.main.settings_keys_activity.enableKey
 import kotlinx.android.synthetic.main.settings_keys_activity.encodingSchemesRecycler
@@ -71,6 +76,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     @Inject lateinit var conversationsRepo: ConversationRepository
     @Inject lateinit var qrCodeWriter: QRCodeWriter
     @Inject lateinit var setDeleteMessagesAfter: SetDeleteMessagesAfter
+    @Inject lateinit var fontProvider: FontProvider
 
     @Inject override lateinit var presenter: KeysSettingsPresenter
 
@@ -108,23 +114,12 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         generateKey.isClickable = state.keyEnabled
         field.setBackgroundTint(colors.theme().theme)
 
+        val enKey = enableKey
+        enKey.systemFont
 
         encodingSchemesRecycler.alpha = if (state.keyEnabled) 1f else 0.5f
-        for (i in 0 until encodingSchemesRecycler.childCount) {
-            val button = (encodingSchemesRecycler.findViewHolderForAdapterPosition(i)?.itemView as AppCompatRadioButton?)
-            button?.let {
-                val colorStateList = ColorStateList(
-                    arrayOf(
-                        intArrayOf(-android.R.attr.state_checked),
-                        intArrayOf(android.R.attr.state_checked)
-                    ), intArrayOf(
-                        it.currentHintTextColor,
-                        colors.theme().theme
-                    )
-                )
-                it.buttonTintList = colorStateList
-                it.isClickable = state.keyEnabled
-            }
+        encodingSchemesRecycler.children.forEach { radioButton ->
+            (radioButton as AppCompatRadioButton?)?.let { renderRadioButton(it, state) }
         }
 
         settings_deletion.visibility = if(state.isConversation) View.VISIBLE else View.GONE
@@ -134,6 +129,29 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
         settings_delete_sent_after.progress = state.deleteSentAfter
         settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
+    }
+
+    private fun renderRadioButton(radioButton: AppCompatRadioButton, state: KeysSettingsState) {
+        val colorStateList = ColorStateList(
+            arrayOf(
+                intArrayOf(-android.R.attr.state_checked),
+                intArrayOf(android.R.attr.state_checked)
+            ), intArrayOf(
+                radioButton.currentHintTextColor,
+                colors.theme().theme
+            )
+        )
+
+        radioButton.textSize = when (prefs.textSize.get()) {
+            Preferences.TEXT_SIZE_SMALL -> 14f
+            Preferences.TEXT_SIZE_NORMAL -> 16f
+            Preferences.TEXT_SIZE_LARGE -> 18f
+            Preferences.TEXT_SIZE_LARGER -> 20f
+            else -> 16f
+        }
+
+        radioButton.buttonTintList = colorStateList
+        radioButton.isClickable = state.keyEnabled
     }
 
     override fun onViewCreated() {
