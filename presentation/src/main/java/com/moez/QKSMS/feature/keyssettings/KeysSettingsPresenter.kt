@@ -9,7 +9,6 @@ import javax.inject.Inject
 class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView, KeysSettingsState>(KeysSettingsState()) {
 
     fun setConversationParameters(
-        keyEnabled: Boolean,
         key: String,
         encodingScheme: Int,
         legacyEncryptionEnabled: Boolean,
@@ -19,7 +18,6 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
     ) {
        newState { copy(
            key = key,
-           keyEnabled = keyEnabled,
            encodingScheme = encodingScheme,
            legacyEncryptionEnabled = legacyEncryptionEnabled,
            isConversation = true,
@@ -30,14 +28,12 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
     }
 
     fun setGlobalParameters(
-        keyEnabled: Boolean,
         key: String,
         encodingScheme: Int,
         legacyEncryptionEnabled: Boolean,
         ) {
         newState { copy(
             key = key,
-            keyEnabled = keyEnabled,
             encodingScheme = encodingScheme,
             legacyEncryptionEnabled = legacyEncryptionEnabled,
             isConversation = false,
@@ -61,7 +57,7 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
     }
 
     fun disableKey() {
-        newState { copy(keySettingsIsShown = false, keyEnabled = false, key = "") }
+        newState { copy(keySettingsIsShown = false, key = "") }
     }
 
     override fun bindIntents(view: KeysSettingsView) {
@@ -73,19 +69,10 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                 when (it.id) {
                     R.id.enableKey -> {
                         newState {
-                            if (isConversation) {
-                                view.keyEnabled(!keyEnabled)
-                                copy(keyEnabled = !keyEnabled)
-                            } else if (!keyEnabled) {
+                            if (key.isNotBlank()) {
                                 view.generateKey()
                                 copy(
-                                    keyEnabled = true,
                                     keySettingsIsShown = true
-                                )
-                            } else if (key.isBlank()) {
-                                copy(
-                                    keyEnabled = false,
-                                    keySettingsIsShown = false
                                 )
                             } else {
                                 view.showDeleteDialog()

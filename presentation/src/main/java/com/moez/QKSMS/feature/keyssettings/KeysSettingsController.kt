@@ -68,7 +68,6 @@ import javax.inject.Inject
 class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState, KeysSettingsPresenter>(), KeysSettingsView {
 
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
-    @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
     @Inject lateinit var setEncodingScheme: SetEncodingScheme
     @Inject lateinit var setLegacyEncryptionEnabled: SetLegacyEncryptionEnabled
     @Inject lateinit var colors: Colors
@@ -106,19 +105,20 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_encryption_key_title)
 
-        enableKey.checkbox.isChecked = state.keyEnabled
+        val isEncryptionEnabled = state.key.isNotBlank()
+        enableKey.checkbox.isChecked = isEncryptionEnabled
 
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        scanQr.alpha = if (state.keyEnabled) 1f else 0.5f
-        scanQr.isClickable = state.keyEnabled
-        generateKey.alpha = if (state.keyEnabled) 1f else 0.5f
-        generateKey.isClickable = state.keyEnabled
+        scanQr.alpha = if (isEncryptionEnabled) 1f else 0.5f
+        scanQr.isClickable = isEncryptionEnabled
+        generateKey.alpha = if (isEncryptionEnabled) 1f else 0.5f
+        generateKey.isClickable = isEncryptionEnabled
         field.setBackgroundTint(colors.theme().theme)
         legacyEncryption.checkbox.isChecked = state.legacyEncryptionEnabled
-        legacyEncryption.alpha = if (state.keyEnabled) 1f else 0.5f
-        legacyEncryption.isClickable = state.keyEnabled
+        legacyEncryption.alpha = if (isEncryptionEnabled) 1f else 0.5f
+        legacyEncryption.isClickable = isEncryptionEnabled
 
-        encodingSchemesRecycler.alpha = if (state.keyEnabled) 1f else 0.5f
+        encodingSchemesRecycler.alpha = if (isEncryptionEnabled) 1f else 0.5f
         encodingSchemesRecycler.children.forEach { radioButton ->
             (radioButton as AppCompatRadioButton?)?.let { renderRadioButton(it, state) }
         }
@@ -158,7 +158,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         }
 
         radioButton.buttonTintList = colorStateList
-        radioButton.isClickable = state.keyEnabled
+        radioButton.isClickable = state.key.isNotBlank()
     }
 
     override fun onViewCreated() {
@@ -172,7 +172,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
 
         if(threadId == -1L) {
             newState = newState.copy(
-                keyEnabled = prefs.globalEncryptionKey.get().isNotBlank(),
                 key = prefs.globalEncryptionKey.get(),
                 encodingScheme = prefs.encodingScheme.get(),
                 legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
@@ -180,7 +179,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             )
             initialState = newState
             presenter.setGlobalParameters(
-                keyEnabled = newState.keyEnabled,
                 key = newState.key,
                 encodingScheme = newState.encodingScheme,
                 legacyEncryptionEnabled = newState.legacyEncryptionEnabled
@@ -189,7 +187,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         } else {
             val conversation = conversationsRepo.getConversation(threadId)
             newState = newState.copy(
-                keyEnabled = conversation?.encryptionEnabled ?: false,
                 key = conversation?.encryptionKey ?: "",
                 encodingScheme = conversation?.encodingSchemeId ?: prefs.encodingScheme.get(),
                 legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled ?: prefs.legacyEncryptionEnabled.get(),
@@ -200,7 +197,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             )
             initialState = newState
             presenter.setConversationParameters(
-                keyEnabled = newState.keyEnabled,
                 key = newState.key,
                 encodingScheme = newState.encodingScheme,
                 legacyEncryptionEnabled = newState.legacyEncryptionEnabled,
@@ -344,11 +340,10 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         if(qrResult != null && qrResult.contents != null) {
             if(validate(qrResult.contents)) {
                 generatedKey = qrResult.contents
-                newState = newState.copy(key = qrResult.contents, keyEnabled = true)
+                newState = newState.copy(key = qrResult.contents)
                 Toast.makeText(context,"${context.getText(R.string.settings_key_has_been_set)}",Toast.LENGTH_LONG).show()
                 if(newState.isConversation) {
                     presenter.setConversationParameters(
-                        keyEnabled = true,
                         key = generatedKey,
                         encodingScheme = newState.encodingScheme,
                         legacyEncryptionEnabled = newState.legacyEncryptionEnabled,
@@ -358,7 +353,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                     )
                 } else {
                     presenter.setGlobalParameters(
-                        keyEnabled = true,
                         key = generatedKey,
                         encodingScheme = newState.encodingScheme,
                         legacyEncryptionEnabled = newState.legacyEncryptionEnabled
@@ -370,12 +364,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     }
 
     override fun resetKey() {
-        newState = newState.copy(key = "", keyEnabled = false)
+        newState = newState.copy(key = "")
         Toast.makeText(context, context.getText(R.string.settings_key_reset), Toast.LENGTH_SHORT).show()
-    }
-
-    override fun keyEnabled(enabled: Boolean) {
-        newState = newState.copy(keyEnabled = enabled)
     }
 
     override fun legacyEncryptionEnabled(enabled: Boolean) {
@@ -410,7 +400,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 presenter.disableKey()
                 newState = newState.copy(
                     keySettingsIsShown = false,
-                    keyEnabled = false,
                     key = "")
             }
             .create()
@@ -447,7 +436,6 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.ENCRYPTED, newState.deleteEncryptedAfter))
             setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.RECEIVED, newState.deleteReceivedAfter))
             setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.SENT, newState.deleteSentAfter))
-            setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, newState.keyEnabled))
             setLegacyEncryptionEnabled.execute(SetLegacyEncryptionEnabled.Params(threadId, newState.legacyEncryptionEnabled))
             setEncryptionKey.execute(SetEncryptionKey.Params(threadId, newState.key))
             setEncodingScheme.execute(SetEncodingScheme.Params(threadId, newState.encodingScheme))
