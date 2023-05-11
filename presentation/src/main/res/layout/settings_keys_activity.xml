@@ -95,6 +95,14 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/legacyEncryption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@android:drawable/ic_partial_secure"
+            app:title="@string/settings_legacy_encryption_title"
+            app:widget="@layout/settings_switch_widget"/>
+
         <com.moez.QKSMS.common.widget.QkTextView
             style="@style/PreferenceCategory"
             android:text="@string/encoding_scheme" />

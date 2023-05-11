@@ -676,11 +676,22 @@ class ComposeViewModel @Inject constructor(
                             .takeIf { it != Conversation.SCHEME_NOT_DEF }
                             ?: prefs.encodingScheme.get()
 
-                        PSmsEncryptor().encode(
-                            message = PSmsMessage(body.toString()),
-                            key = Base64.decode(encryptionKey, Base64.DEFAULT),
-                            encryptionSchemeId = encryptionSchemeId
-                        )
+                        val legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled
+                            ?: prefs.legacyEncryptionEnabled.get()
+
+                        if (legacyEncryptionEnabled) {
+                            PSmsEncryptor().encodeLegacy(
+                                message = PSmsMessage(body.toString()),
+                                key = Base64.decode(encryptionKey, Base64.DEFAULT),
+                                encryptionSchemeId = encryptionSchemeId
+                            )
+                        } else {
+                            PSmsEncryptor().encode(
+                                message = PSmsMessage(body.toString()),
+                                key = Base64.decode(encryptionKey, Base64.DEFAULT),
+                                encryptionSchemeId = encryptionSchemeId
+                            )
+                        }
                     } ?: body
                 }
                 .map { body -> body.toString() }

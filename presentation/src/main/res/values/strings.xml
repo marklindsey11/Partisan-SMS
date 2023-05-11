@@ -537,6 +537,7 @@
     <string name="settings_reset_global_key_sure">I am sure</string>
     <string name="settings_reset_global_key_sure_summary">I understand that when I press this button it will be impossible to restore my encryption key and all messages encrypted with it</string>
     <string name="settings_encryption_key_title">Encryption key</string>
+    <string name="settings_legacy_encryption_title">Encryption compatibility mode</string>
     <string name="settings_messages_delete">Messages deletion</string>
     <string name="settings_exit_with_no_changes">Do you want to quit without saving changes?</string>
     <string name="settings_delete_ecnryption_key">Do you want to delete encryption key?</string>

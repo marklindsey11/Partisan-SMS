@@ -12,6 +12,7 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
         keyEnabled: Boolean,
         key: String,
         encodingScheme: Int,
+        legacyEncryptionEnabled: Boolean,
         deleteEncryptedAfter: Int,
         deleteReceivedAfter: Int,
         deleteSentAfter: Int,
@@ -20,6 +21,7 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
            key = key,
            keyEnabled = keyEnabled,
            encodingScheme = encodingScheme,
+           legacyEncryptionEnabled = legacyEncryptionEnabled,
            isConversation = true,
            deleteEncryptedAfter = deleteEncryptedAfter,
            deleteReceivedAfter = deleteReceivedAfter,
@@ -31,12 +33,14 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
         keyEnabled: Boolean,
         key: String,
         encodingScheme: Int,
-    ) {
+        legacyEncryptionEnabled: Boolean,
+        ) {
         newState { copy(
             key = key,
             keyEnabled = keyEnabled,
             encodingScheme = encodingScheme,
-            isConversation = false
+            legacyEncryptionEnabled = legacyEncryptionEnabled,
+            isConversation = false,
         ) }
     }
 
@@ -95,8 +99,16 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                     }
                     R.id.generateKey -> {
                         newState {
-                            if (!keySettingsIsShown) view.generateKey()
+                            if (!keySettingsIsShown) {
+                                view.generateKey()
+                            }
                             copy(keySettingsIsShown = !keySettingsIsShown)
+                        }
+                    }
+                    R.id.legacyEncryption -> {
+                        newState {
+                            view.legacyEncryptionEnabled(!legacyEncryptionEnabled)
+                            copy(legacyEncryptionEnabled = !legacyEncryptionEnabled)
                         }
                     }
                 }

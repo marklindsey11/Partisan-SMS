@@ -133,6 +133,7 @@ class Preferences @Inject constructor(
     val hiddenKey = rxPrefs.getString("hiddenKey", "")
     val deleteEncryptedAfter = rxPrefs.getInteger("deleteEncryptedAfter", 0)
     val encodingScheme = rxPrefs.getInteger("encodingScheme", getDefaultSchemeByLocale())
+    val legacyEncryptionEnabled = rxPrefs.getBoolean("legacyEncryptionEnabled", false)
     val showInTaskSwitcher = rxPrefs.getBoolean("showInTaskSwitcher", true)
 
     init {

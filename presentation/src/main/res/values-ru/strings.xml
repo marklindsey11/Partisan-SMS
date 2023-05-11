@@ -448,6 +448,7 @@
     <string name="settings_key_reset">Ключ сброшен</string>
     <string name="settings_reset_global_key_sure">Я уверен</string>
     <string name="settings_encryption_key_title">Ключ шифрования</string>
+    <string name="settings_legacy_encryption_title">Режим совместимости шифрования</string>
     <string name="settings_reset_global_key_sure_summary">Я понимаю, что когда я нажму эту кнопку, станет невозможным восстановление ключа и всех сообщений, зашифрованных с его помощью</string>
     <string name="conversation_delete_received_after">Удалять полученные сообщения через</string>
     <string name="conversation_delete_sent_after">Удалять отправленные сообщения через</string>

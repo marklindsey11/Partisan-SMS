@@ -5,6 +5,7 @@ data class KeysSettingsState(
     val keyEnabled: Boolean  = false,
     val keySettingsIsShown: Boolean = false,
     val encodingScheme: Int = 0,
+    val legacyEncryptionEnabled: Boolean  = false,
     val isConversation: Boolean = false,
     val deleteEncryptedAfter: Int = 0,
     val deleteReceivedAfter: Int = 0,

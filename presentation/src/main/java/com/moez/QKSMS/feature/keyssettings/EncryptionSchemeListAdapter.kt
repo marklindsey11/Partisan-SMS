@@ -9,13 +9,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.moez.QKSMS.R
 
 @SuppressLint("NotifyDataSetChanged")
-class KeysSettingsListAdapter(
+class EncryptionSchemeListAdapter(
     private val items: Array<String>,
     encodingSchemeId: Int,
     private val callback: (Int) -> Unit
-) : RecyclerView.Adapter<KeysSettingsListAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<EncryptionSchemeListAdapter.ViewHolder>() {
 
-    private var selectedItem: Int = encodingSchemeId
+    private var selectedSchemeId: Int = encodingSchemeId
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val radio : RadioButton = itemView.findViewById(R.id.listRadio)
@@ -29,16 +29,16 @@ class KeysSettingsListAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.radio.text = items[position]
-        holder.radio.isChecked = selectedItem == position
+        holder.radio.isChecked = selectedSchemeId == position
         holder.radio.setOnClickListener {
-            selectedItem = holder.adapterPosition
+            selectedSchemeId = holder.adapterPosition
             notifyDataSetChanged()
-            callback(selectedItem)
+            callback(selectedSchemeId)
         }
     }
 
     fun setSelected(item: Int) {
-        selectedItem = item
+        selectedSchemeId = item
         notifyDataSetChanged()
     }
 

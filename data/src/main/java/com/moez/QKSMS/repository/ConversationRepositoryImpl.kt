@@ -457,6 +457,18 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun setLegacyEncryptionEnabled(threadId: Long, enabled: Boolean) {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .equalTo(Conversation::id.name, threadId)
+                .findFirst()
+
+            realm.executeTransaction {
+                conversation?.legacyEncryptionEnabled = enabled
+            }
+        }
+    }
+
     override fun setDeleteEncryptedAfter(threadId: Long, durationId: Int) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)

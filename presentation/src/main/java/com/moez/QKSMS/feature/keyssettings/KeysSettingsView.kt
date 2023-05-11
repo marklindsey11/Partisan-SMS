@@ -13,6 +13,8 @@ interface KeysSettingsView : QkViewContract<KeysSettingsState> {
     fun scanQrCode()
     fun resetKey()
     fun keyEnabled(enabled: Boolean)
+    fun legacyEncryptionEnabled(enabled: Boolean)
+
     fun setDeleteEncryptedAfter(delay: Int)
     fun setDeleteReceivedAfter(delay: Int)
     fun setDeleteSentAfter(delay: Int)

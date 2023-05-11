@@ -40,6 +40,7 @@ open class Conversation(
     // hidden
     var encryptionKey: String = "",
     var encodingSchemeId: Int = SCHEME_NOT_DEF,
+    var legacyEncryptionEnabled: Boolean = false,
     var deleteEncryptedAfter: Int = 0,
     var deleteReceivedAfter: Int = 0,
     var deleteSentAfter: Int = 0,
