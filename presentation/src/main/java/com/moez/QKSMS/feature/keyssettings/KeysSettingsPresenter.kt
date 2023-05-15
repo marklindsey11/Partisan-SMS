@@ -70,13 +70,13 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                     R.id.enableKey -> {
                         newState {
                             if (key.isNotBlank()) {
+                                view.showDeleteDialog()
+                                copy()
+                            } else {
                                 view.generateKey()
                                 copy(
                                     keySettingsIsShown = true
                                 )
-                            } else {
-                                view.showDeleteDialog()
-                                copy()
                             }
 
                         }
