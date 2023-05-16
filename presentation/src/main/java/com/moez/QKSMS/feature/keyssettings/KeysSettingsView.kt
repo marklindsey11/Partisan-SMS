@@ -9,14 +9,16 @@ interface KeysSettingsView : QkViewContract<KeysSettingsState> {
     fun generateKey()
     fun selectEncodingScheme(schemeId: Int)
     fun preferenceClicks(): Observable<PreferenceView>
+    fun compatibilityModeSelected(): Observable<Int>
     fun copyKey()
     fun scanQrCode()
     fun resetKey()
-    fun legacyEncryptionEnabled(enabled: Boolean)
+    fun legacyEncryptionEnabled(enabled: Boolean?)
 
     fun setDeleteEncryptedAfter(delay: Int)
     fun setDeleteReceivedAfter(delay: Int)
     fun setDeleteSentAfter(delay: Int)
     fun showDeleteDialog()
+    fun showCompatibilityModeDialog()
 
 }

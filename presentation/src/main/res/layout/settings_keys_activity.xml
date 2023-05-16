@@ -41,7 +41,6 @@
             android:id="@+id/generateKey"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:alpha="0.5"
             app:icon="@drawable/ic_sync_black_24dp"
             app:title="@string/settings_generate_new_key" />
@@ -102,6 +101,14 @@
             app:icon="@android:drawable/ic_partial_secure"
             app:title="@string/settings_legacy_encryption_title"
             app:widget="@layout/settings_switch_widget"/>
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/legacyEncryptionConversation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@android:drawable/ic_partial_secure"
+            app:title="@string/settings_legacy_encryption_title"
+            tools:summary="Use Mode from Settings" />
 
         <com.moez.QKSMS.common.widget.QkTextView
             style="@style/PreferenceCategory"

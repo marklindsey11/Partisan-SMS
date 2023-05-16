@@ -26,6 +26,7 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.qrcode.QRCodeWriter
 import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.R
+import com.moez.QKSMS.common.QkDialog
 import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.FontProvider
@@ -36,9 +37,9 @@ import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
 import com.moez.QKSMS.interactor.SetEncodingScheme
-import com.moez.QKSMS.interactor.SetEncryptionEnabled
 import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.interactor.SetLegacyEncryptionEnabled
+import com.moez.QKSMS.model.Conversation
 import com.moez.QKSMS.repository.ConversationRepository
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
@@ -50,6 +51,7 @@ import kotlinx.android.synthetic.main.settings_keys_activity.field
 import kotlinx.android.synthetic.main.settings_keys_activity.generateKey
 import kotlinx.android.synthetic.main.settings_keys_activity.keyInputGroup
 import kotlinx.android.synthetic.main.settings_keys_activity.legacyEncryption
+import kotlinx.android.synthetic.main.settings_keys_activity.legacyEncryptionConversation
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
 import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
@@ -77,6 +79,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     @Inject lateinit var qrCodeWriter: QRCodeWriter
     @Inject lateinit var setDeleteMessagesAfter: SetDeleteMessagesAfter
     @Inject lateinit var fontProvider: FontProvider
+    @Inject lateinit var compatibilityModeDialog: QkDialog
 
     @Inject override lateinit var presenter: KeysSettingsPresenter
 
@@ -100,6 +103,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         .map { preference -> preference.clicks().map { preference } }
         .let { preferences -> Observable.merge(preferences) }
 
+    override fun compatibilityModeSelected(): Observable<Int> = compatibilityModeDialog.adapter.menuItemClicks
+
     override fun render(state: KeysSettingsState) {
         encryptionKeyCategory.text =
             if(state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
@@ -114,9 +119,25 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         generateKey.alpha = if (isEncryptionEnabled) 1f else 0.5f
         generateKey.isClickable = isEncryptionEnabled
         field.setBackgroundTint(colors.theme().theme)
-        legacyEncryption.checkbox.isChecked = state.legacyEncryptionEnabled
-        legacyEncryption.alpha = if (isEncryptionEnabled) 1f else 0.5f
-        legacyEncryption.isClickable = isEncryptionEnabled
+        if (threadId == -1L) {
+            legacyEncryption.checkbox.isChecked = state.legacyEncryptionEnabled ?: false
+            legacyEncryption.alpha = if (isEncryptionEnabled) 1f else 0.5f
+            legacyEncryption.isClickable = isEncryptionEnabled
+            legacyEncryptionConversation.visibility = View.GONE
+        } else {
+            val strings = context.resources.getStringArray(R.array.compatibility_mode_settings_conversation)
+            val selectedItem = when(state.legacyEncryptionEnabled) {
+                null -> 0
+                false -> 1
+                true -> 2
+            }
+            legacyEncryptionConversation.summary = strings[selectedItem]
+            legacyEncryptionConversation.alpha = if (isEncryptionEnabled) 1f else 0.5f
+            legacyEncryptionConversation.isClickable = isEncryptionEnabled
+            legacyEncryption.visibility = View.GONE
+            compatibilityModeDialog.adapter.selectedItem = selectedItem
+        }
+
 
         encodingSchemesRecycler.alpha = if (isEncryptionEnabled) 1f else 0.5f
         encodingSchemesRecycler.children.forEach { radioButton ->
@@ -166,7 +187,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         threadId = requireActivity().intent.getLongExtra("threadId", -1)
         val currentScheme = if(threadId == -1L) prefs.encodingScheme.get()
             else conversationsRepo.getConversation(threadId)?.encodingSchemeId ?: 0
-        encodingSchemes = context.resources.getStringArray(R.array.encoding_scheme_labels)
+        encodingSchemes = if(threadId == -1L) context.resources.getStringArray(R.array.encoding_scheme_labels)
+            else context.resources.getStringArray(R.array.encoding_scheme_labels_conversation)
         deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
         schemesListAdapter = EncryptionSchemeListAdapter(encodingSchemes, currentScheme, this::selectEncodingScheme)
 
@@ -181,15 +203,18 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             presenter.setGlobalParameters(
                 key = newState.key,
                 encodingScheme = newState.encodingScheme,
-                legacyEncryptionEnabled = newState.legacyEncryptionEnabled
+                legacyEncryptionEnabled = newState.legacyEncryptionEnabled ?: false
             )
             schemesListAdapter.setSelected(prefs.encodingScheme.get())
         } else {
             val conversation = conversationsRepo.getConversation(threadId)
+            val schemeIndex = conversation?.encodingSchemeId
+                .takeIf { it != Conversation.SCHEME_NOT_DEF }
+                ?: GLOBAL_SCHEME_INDEX
             newState = newState.copy(
                 key = conversation?.encryptionKey ?: "",
-                encodingScheme = conversation?.encodingSchemeId ?: prefs.encodingScheme.get(),
-                legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled ?: prefs.legacyEncryptionEnabled.get(),
+                encodingScheme = schemeIndex,
+                legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled,
                 deleteEncryptedAfter = conversation?.deleteEncryptedAfter ?: 0,
                 deleteReceivedAfter = conversation?.deleteReceivedAfter ?: 0,
                 deleteSentAfter = conversation?.deleteSentAfter ?: 0,
@@ -204,7 +229,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                 deleteReceivedAfter = newState.deleteReceivedAfter,
                 deleteSentAfter = newState.deleteSentAfter,
             )
-            schemesListAdapter.setSelected(conversation?.encodingSchemeId ?: 0)
+            schemesListAdapter.setSelected(schemeIndex)
         }
 
 
@@ -261,6 +286,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         copyKey.setOnClickListener {
             copyKey()
         }
+        compatibilityModeDialog.adapter.setData(R.array.compatibility_mode_settings_conversation)
     }
 
     override fun onAttach(view: View) {
@@ -355,7 +381,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
                     presenter.setGlobalParameters(
                         key = generatedKey,
                         encodingScheme = newState.encodingScheme,
-                        legacyEncryptionEnabled = newState.legacyEncryptionEnabled
+                        legacyEncryptionEnabled = newState.legacyEncryptionEnabled ?: false
                     )
                 }
             }
@@ -368,7 +394,7 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
         Toast.makeText(context, context.getText(R.string.settings_key_reset), Toast.LENGTH_SHORT).show()
     }
 
-    override fun legacyEncryptionEnabled(enabled: Boolean) {
+    override fun legacyEncryptionEnabled(enabled: Boolean?) {
         newState = newState.copy(legacyEncryptionEnabled = enabled)
     }
 
@@ -391,6 +417,8 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
     override fun setDeleteSentAfter(delay: Int) {
         newState = newState.copy(deleteSentAfter = delay)
     }
+
+    override fun showCompatibilityModeDialog() = compatibilityModeDialog.show(activity!!)
 
     override fun showDeleteDialog() {
         AlertDialog.Builder(this.activity)
@@ -438,13 +466,20 @@ class KeysSettingsController : QkController<KeysSettingsView, KeysSettingsState,
             setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(threadId, SetDeleteMessagesAfter.MessageType.SENT, newState.deleteSentAfter))
             setLegacyEncryptionEnabled.execute(SetLegacyEncryptionEnabled.Params(threadId, newState.legacyEncryptionEnabled))
             setEncryptionKey.execute(SetEncryptionKey.Params(threadId, newState.key))
-            setEncodingScheme.execute(SetEncodingScheme.Params(threadId, newState.encodingScheme))
+            val schemeId = newState.encodingScheme
+                .takeIf { it != GLOBAL_SCHEME_INDEX }
+                ?: Conversation.SCHEME_NOT_DEF
+            setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
         } else {
             prefs.globalEncryptionKey.set(newState.key)
             prefs.encodingScheme.set(newState.encodingScheme)
-            prefs.legacyEncryptionEnabled.set(newState.legacyEncryptionEnabled)
+            prefs.legacyEncryptionEnabled.set(newState.legacyEncryptionEnabled ?: false)
         }
         initialState = newState
     }
 
+    companion object {
+        /*index of item "Use Scheme from Settings" at R.array.encoding_scheme_labels_conversation*/
+        private const val GLOBAL_SCHEME_INDEX = 3
+    }
 }

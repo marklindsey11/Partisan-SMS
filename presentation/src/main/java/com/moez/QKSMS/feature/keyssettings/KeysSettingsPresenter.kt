@@ -11,7 +11,7 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
     fun setConversationParameters(
         key: String,
         encodingScheme: Int,
-        legacyEncryptionEnabled: Boolean,
+        legacyEncryptionEnabled: Boolean?,
         deleteEncryptedAfter: Int,
         deleteReceivedAfter: Int,
         deleteSentAfter: Int,
@@ -94,11 +94,31 @@ class KeysSettingsPresenter @Inject constructor() : QkPresenter<KeysSettingsView
                     }
                     R.id.legacyEncryption -> {
                         newState {
-                            view.legacyEncryptionEnabled(!legacyEncryptionEnabled)
-                            copy(legacyEncryptionEnabled = !legacyEncryptionEnabled)
+                            val wasEnabled = legacyEncryptionEnabled ?: false
+                            view.legacyEncryptionEnabled(!wasEnabled)
+                            copy(legacyEncryptionEnabled = !wasEnabled)
                         }
+                    }
+                    R.id.legacyEncryptionConversation -> {
+                        view.showCompatibilityModeDialog()
                     }
                 }
             }
+
+        view.compatibilityModeSelected()
+            .doOnNext { modeIndex ->
+                newState {
+                    val mode = when(modeIndex) {
+                        0 -> null
+                        1 -> false
+                        2 -> true
+                        else -> null
+                    }
+                    view.legacyEncryptionEnabled(mode)
+                    copy(legacyEncryptionEnabled = mode)
+                }
+            }
+            .autoDisposable(view.scope())
+            .subscribe()
     }
 }

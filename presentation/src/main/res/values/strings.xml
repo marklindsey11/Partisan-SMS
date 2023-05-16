@@ -543,4 +543,9 @@
     <string name="settings_delete_ecnryption_key">Do you want to delete encryption key?</string>
     <string name="global_key_isnt_set">Global key is not set!</string>
     <string name="global_key_set">Set key</string>
+    <string-array name="compatibility_mode_settings_conversation">
+        <item>Use Mode from Settings</item>
+        <item>Disabled</item>
+        <item>Enabled</item>
+    </string-array>
 </resources>
