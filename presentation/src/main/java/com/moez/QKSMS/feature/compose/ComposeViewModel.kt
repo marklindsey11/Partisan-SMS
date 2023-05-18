@@ -223,11 +223,9 @@ class ComposeViewModel @Inject constructor(
         val encryptionEnabledObservable = conversation.map { conversation -> conversation.encryptionEnabled }
         val conversationIdObservable = conversation.map { conversation -> conversation.id }
         disposables += Observables.combineLatest(encryptionEnabledObservable, conversationIdObservable)
-                .subscribe { (encryptionEnabled, conversationId) ->
+                .subscribe { (encryptionEnabled) ->
                     newState { copy(
-                        encrypted = encryptionEnabled,
-                        encryptionEnabled = encryptionEnabled,
-                        messages = Pair(conversationRepo.getConversation(conversationId)!!, messageRepo.getMessages(conversationId))
+                        encryptionEnabled = encryptionEnabled
                     ) }
                 }
 
@@ -798,10 +796,7 @@ class ComposeViewModel @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe {
                     setEncryptionEnabled.execute(it) {
-                        newState { copy(
-                            encryptionEnabled = true,
-                            encrypted = true
-                        ) }
+                        newState { copy(encryptionEnabled = true) }
                     }
                 }
 
@@ -814,10 +809,7 @@ class ComposeViewModel @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe{
                 setEncryptionEnabled.execute(it) {
-                    newState { copy(
-                        encryptionEnabled = false,
-                        encrypted = false
-                    ) }
+                    newState { copy(encryptionEnabled = false) }
                 }
             }
 

@@ -214,8 +214,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.clear)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
-        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled && state.encrypted
-        toolbar.menu.findItem(R.id.raw)?.isVisible = !(state.encryptionEnabled && state.encrypted)
+        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled
+        toolbar.menu.findItem(R.id.raw)?.isVisible = !state.encryptionEnabled
 
         chipsAdapter.data = state.selectedChips
 
@@ -247,7 +247,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         send.isEnabled = state.canSend
         send.imageAlpha = if (state.canSend) 255 else 128
 
-        if (state.encrypted) {
+        if (state.encryptionEnabled) {
             message.imeOptions = message.imeOptions or IME_FLAG_NO_PERSONALIZED_LEARNING
         } else {
             message.imeOptions = message.imeOptions and IME_FLAG_NO_PERSONALIZED_LEARNING.inv()
