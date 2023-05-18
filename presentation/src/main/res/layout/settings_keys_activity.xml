@@ -61,7 +61,7 @@
                 android:gravity="center_vertical">
 
                 <com.moez.QKSMS.common.widget.QkEditText
-                    android:id="@+id/field"
+                    android:id="@+id/keyField"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
@@ -119,6 +119,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="32dp"
+            android:overScrollMode="never"
             tools:itemCount="3"
             tools:listitem="@layout/settings_keys_radio_button_list_item" />
 

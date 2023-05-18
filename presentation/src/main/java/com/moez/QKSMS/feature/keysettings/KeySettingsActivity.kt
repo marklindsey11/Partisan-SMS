@@ -1,6 +1,7 @@
-package com.moez.QKSMS.feature.keyssettings
+package com.moez.QKSMS.feature.keysettings
 
 import android.os.Bundle
+import android.view.Menu
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
@@ -9,7 +10,7 @@ import com.moez.QKSMS.common.base.QkThemedActivity
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.container_activity.*
 
-class KeysSettingsActivity: QkThemedActivity() {
+class KeySettingsActivity: QkThemedActivity() {
 
     private lateinit var router: Router
 
@@ -20,8 +21,13 @@ class KeysSettingsActivity: QkThemedActivity() {
 
         router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(KeysSettingsController()))
+            router.setRoot(RouterTransaction.with(KeySettingsController()))
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.key_settings, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onBackPressed() {

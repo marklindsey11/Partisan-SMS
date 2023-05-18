@@ -9,6 +9,7 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="8dp"
     android:text="@string/encoding_scheme"
+    android:textSize="16sp"
     tools:tint="?android:attr/textColorTertiary"
     />
 

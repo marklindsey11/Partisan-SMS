@@ -507,7 +507,7 @@
     </string-array>
     <string name="settings_global_encryption_key_title">Global Encryption Key</string>
     <string name="settings_scan_qr_title">Scan QR-code with key</string>
-    <string name="settings_generate_new_key">Generate or insert key </string>
+    <string name="settings_generate_new_key">Generate new key</string>
     <string name="conversation_delete_received_after">Delete Received Messages After</string>
     <string name="conversation_delete_sent_after">Delete Sent Messages After</string>
     <string name="sms_for_reset">SMS for Reset</string>

@@ -239,7 +239,7 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
             }
         }
 
-        // hiden
+        // hidden
         hidden.isVisible = HiddenSettingsSingleton.hiddenEnabled
 
         globalEncryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
