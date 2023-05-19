@@ -129,9 +129,9 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             .withLatestFrom(state) { itemId, lastState ->
                 when(itemId) {
                     R.id.confirm -> {
-                        if (lastState.keyValid) {
+                        if (lastState.allowSave) {
                             if (lastState != initialState) {
-                                saveChanges(lastState)
+                                saveChanges(lastState, view)
                             }
                             view.goBack()
                         }
@@ -156,7 +156,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
         view.exitWithSavingIntent
             .withLatestFrom(state) { withSaving, lastState ->
                 if (withSaving) {
-                    saveChanges(lastState)
+                    saveChanges(lastState, view)
                 }
                 view.goBack()
             }
@@ -218,8 +218,8 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
         return Base64.encodeToString(keyGen.generateKey().encoded, Base64.NO_WRAP)
     }
 
-    private fun saveChanges(lastState: KeySettingsState) {
-        if (!lastState.keyValid) {
+    private fun saveChanges(lastState: KeySettingsState, view: KeySettingsView) {
+        if (!lastState.allowSave) {
             return
         }
         if (lastState.isConversation) {
@@ -239,6 +239,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             prefs.legacyEncryptionEnabled.set(lastState.legacyEncryptionEnabled ?: false)
         }
         initialState = lastState
+        view.onSaved(if (lastState.keyValid) lastState.key else null)
     }
 
     private fun validateKey(text: String): Boolean {

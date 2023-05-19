@@ -24,7 +24,6 @@ import android.os.Vibrator
 import android.provider.ContactsContract
 import android.telephony.SmsMessage
 import android.util.Base64
-import android.util.Log
 import androidx.core.content.getSystemService
 import by.cyberpartisan.psms.PSmsEncryptor
 import com.moez.QKSMS.R
@@ -60,16 +59,12 @@ import com.uber.autodispose.autoDisposable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
-import io.reactivex.rxkotlin.combineLatest
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -100,7 +95,6 @@ class ComposeViewModel @Inject constructor(
     private val retrySending: RetrySending,
     private val sendMessage: SendMessage,
     private val subscriptionManager: SubscriptionManagerCompat,
-    private val setEncryptionKey: SetEncryptionKey,
     private val setEncryptionEnabled: SetEncryptionEnabled
 ) : QkViewModel<ComposeView, ComposeState>(ComposeState(
         editingMode = threadId == 0L && addresses.isEmpty(),
@@ -220,10 +214,10 @@ class ComposeViewModel @Inject constructor(
             }
         }.subscribe()
 
-        val encryptionEnabledObservable = conversation.map { conversation -> conversation.encryptionEnabled }
-        val conversationIdObservable = conversation.map { conversation -> conversation.id }
-        disposables += Observables.combineLatest(encryptionEnabledObservable, conversationIdObservable)
-                .subscribe { (encryptionEnabled) ->
+        val encryptionEnabledObservable = conversation
+            .map { conversation -> conversation.encryptionEnabled ?: prefs.globalEncryptionKey.get().isNotBlank() }
+        disposables += encryptionEnabledObservable
+                .subscribe { encryptionEnabled ->
                     newState { copy(
                         encryptionEnabled = encryptionEnabled
                     ) }
@@ -788,17 +782,16 @@ class ComposeViewModel @Inject constructor(
         view.optionsItemIntent
                 .filter { it == R.id.raw }
                 .withLatestFrom(conversation) { _, conversation ->
-                    (conversation.encryptionKey.isNotEmpty() || prefs.globalEncryptionKey.get().isNotEmpty()).also {
-                        if (!it) view.showEncryptionKeyDialog(conversation)
+                    if (conversation.encryptionKey.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
+                        view.showEncryptionKeySettings(conversation)
+                    } else {
+                        setEncryptionEnabled.execute(SetEncryptionEnabled.Params(conversation.id, true)) {
+                            newState { copy(encryptionEnabled = true) }
+                        }
                     }
-                    SetEncryptionEnabled.Params(conversation.id, true)
                 }
                 .autoDisposable(view.scope())
-                .subscribe {
-                    setEncryptionEnabled.execute(it) {
-                        newState { copy(encryptionEnabled = true) }
-                    }
-                }
+                .subscribe()
 
         // Disable encryption
         view.optionsItemIntent
@@ -813,10 +806,14 @@ class ComposeViewModel @Inject constructor(
                 }
             }
 
-        view.setEncryptionKeyIntent
-                .map { SetEncryptionKey.Params(it.first.id, it.second) }
-                .autoDisposable(view.scope())
-                .subscribe(setEncryptionKey::execute)
+        view.encryptionKeySetIntent
+            .withLatestFrom(conversation) { _, conversation ->
+                setEncryptionEnabled.execute(SetEncryptionEnabled.Params(conversation.id, true)) {
+                    newState { copy(encryptionEnabled = true) }
+                }
+            }
+            .autoDisposable(view.scope())
+            .subscribe()
     }
 
     private fun getVCard(contactData: Uri): String? {

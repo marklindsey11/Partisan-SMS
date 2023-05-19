@@ -27,5 +27,6 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     fun showSaveDialog(valid: Boolean)
     fun showCompatibilityModeDialog()
     fun goBack()
+    fun onSaved(key: String?)
 
 }

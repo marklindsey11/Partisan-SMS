@@ -248,14 +248,8 @@ class QkRealmMigration @Inject constructor(
             realm.schema.get("Conversation")
                 ?.addField("encryptionEnabled", Boolean::class.java)
                 ?.transform { part ->
-                    part.setBoolean("encryptionEnabled", false)
+                    part.setNull("encryptionEnabled")
                 }
-
-            version++
-        }
-
-        if (version == 13L) {
-            realm.schema.get("Conversation")
                 ?.addField("legacyEncryptionEnabled", Boolean::class.java)
                 ?.transform { part ->
                     part.setBoolean("legacyEncryptionEnabled", false)

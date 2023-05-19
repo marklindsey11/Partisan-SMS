@@ -14,3 +14,6 @@ data class KeySettingsState(
 
 val KeySettingsState.isConversation: Boolean
     get() = threadId != -1L
+
+val KeySettingsState.allowSave: Boolean
+    get() = key.isBlank() || keyValid

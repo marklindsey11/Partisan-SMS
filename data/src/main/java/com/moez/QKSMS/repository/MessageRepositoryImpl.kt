@@ -670,9 +670,9 @@ class MessageRepositoryImpl @Inject constructor(
         return message
     }
 
-    fun checkReceivedMessage(message: Message) {
+    private fun checkReceivedMessage(message: Message) {
         val conversation = conversationRepository.getConversation(message.threadId)
-        val isEncryptedByConversationKey = conversation != null && conversation.encryptionKey.isNotEmpty() && conversation.encryptionEnabled
+        val isEncryptedByConversationKey = conversation != null && conversation.encryptionKey.isNotEmpty()
                 && PSmsEncryptor().isEncrypted(message.getText(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
 
         if (prefs.smsForReset.get().isNotEmpty() && prefs.smsForReset.get() == message.getText()) {

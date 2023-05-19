@@ -1,5 +1,6 @@
 package com.moez.QKSMS.feature.keysettings
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -25,6 +26,7 @@ import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.widget.PreferenceView
+import com.moez.QKSMS.feature.contacts.ContactsActivity
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
@@ -56,6 +58,7 @@ import javax.inject.Inject
 class KeySettingsController : QkController<KeySettingsView, KeySettingsState, KeySettingsPresenter>(), KeySettingsView {
 
     companion object {
+        const val EncryptionKeyKey = "encryption_key"
         private const val ScanQrRequestCode = 201
     }
 
@@ -293,5 +296,10 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
 
     override fun goBack() {
         activity?.finish()
+    }
+
+    override fun onSaved(key: String?) {
+        val intent = Intent().putExtra(EncryptionKeyKey, key)
+        activity?.setResult(Activity.RESULT_OK, intent)
     }
 }

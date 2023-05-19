@@ -42,14 +42,12 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxbinding2.view.clicks
-import com.jakewharton.rxbinding2.view.longClicks
 import com.jakewharton.rxbinding2.widget.textChanges
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.base.QkThemedActivity
 import com.moez.QKSMS.common.util.DateFormatter
 import com.moez.QKSMS.common.util.extensions.autoScrollToStart
-import com.moez.QKSMS.common.util.extensions.dismissKeyboard
 import com.moez.QKSMS.common.util.extensions.hideKeyboard
 import com.moez.QKSMS.common.util.extensions.resolveThemeColor
 import com.moez.QKSMS.common.util.extensions.scrapViews
@@ -57,9 +55,10 @@ import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.util.extensions.setVisible
 import com.moez.QKSMS.common.util.extensions.showKeyboard
-import com.moez.QKSMS.common.widget.KeyInputDialog
 import com.moez.QKSMS.feature.compose.editing.ChipsAdapter
 import com.moez.QKSMS.feature.contacts.ContactsActivity
+import com.moez.QKSMS.feature.keysettings.KeySettingsActivity
+import com.moez.QKSMS.feature.keysettings.KeySettingsController
 import com.moez.QKSMS.model.Attachment
 import com.moez.QKSMS.model.Conversation
 import com.moez.QKSMS.model.Recipient
@@ -67,13 +66,47 @@ import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import kotlinx.android.synthetic.main.compose_activity.*
+import kotlinx.android.synthetic.main.compose_activity.attach
+import kotlinx.android.synthetic.main.compose_activity.attaching
+import kotlinx.android.synthetic.main.compose_activity.attachingBackground
+import kotlinx.android.synthetic.main.compose_activity.attachments
+import kotlinx.android.synthetic.main.compose_activity.camera
+import kotlinx.android.synthetic.main.compose_activity.cameraLabel
+import kotlinx.android.synthetic.main.compose_activity.chips
+import kotlinx.android.synthetic.main.compose_activity.composeBar
+import kotlinx.android.synthetic.main.compose_activity.contact
+import kotlinx.android.synthetic.main.compose_activity.contactLabel
+import kotlinx.android.synthetic.main.compose_activity.contentView
+import kotlinx.android.synthetic.main.compose_activity.counter
+import kotlinx.android.synthetic.main.compose_activity.gallery
+import kotlinx.android.synthetic.main.compose_activity.galleryLabel
+import kotlinx.android.synthetic.main.compose_activity.loading
+import kotlinx.android.synthetic.main.compose_activity.message
+import kotlinx.android.synthetic.main.compose_activity.messageBackground
+import kotlinx.android.synthetic.main.compose_activity.messageList
+import kotlinx.android.synthetic.main.compose_activity.messagesEmpty
+import kotlinx.android.synthetic.main.compose_activity.schedule
+import kotlinx.android.synthetic.main.compose_activity.scheduleLabel
+import kotlinx.android.synthetic.main.compose_activity.scheduledCancel
+import kotlinx.android.synthetic.main.compose_activity.scheduledGroup
+import kotlinx.android.synthetic.main.compose_activity.scheduledTime
+import kotlinx.android.synthetic.main.compose_activity.send
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroup
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroupBackground
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroupSwitch
+import kotlinx.android.synthetic.main.compose_activity.sim
+import kotlinx.android.synthetic.main.compose_activity.simIndex
+import kotlinx.android.synthetic.main.compose_activity.toolbar
+import kotlinx.android.synthetic.main.compose_activity.toolbarSubtitle
+import kotlinx.android.synthetic.main.compose_activity.toolbarTitle
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
-import kotlin.collections.HashMap
 
 class ComposeActivity : QkThemedActivity(), ComposeView {
 
@@ -82,6 +115,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         private const val TakePhotoRequestCode = 1
         private const val AttachPhotoRequestCode = 2
         private const val AttachContactRequestCode = 3
+        private const val SetEncryptionKeyRequestCode = 202
 
         private const val CameraDestinationKey = "camera_destination"
     }
@@ -119,7 +153,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val sendIntent by lazy { send.clicks() }
     override val viewQksmsPlusIntent: Subject<Unit> = PublishSubject.create()
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
-    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
+    override val encryptionKeySetIntent: Subject<Unit> = PublishSubject.create()
 
     private val viewModel by lazy { ViewModelProviders.of(this, viewModelFactory)[ComposeViewModel::class.java] }
 
@@ -396,6 +430,11 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             requestCode == AttachContactRequestCode && resultCode == Activity.RESULT_OK -> {
                 data?.data?.let(contactSelectedIntent::onNext)
             }
+            requestCode == SetEncryptionKeyRequestCode && resultCode == Activity.RESULT_OK -> {
+                data?.getStringExtra(KeySettingsController.EncryptionKeyKey)?.let {
+                    encryptionKeySetIntent.onNext(Unit)
+                }
+            }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
@@ -412,9 +451,11 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun onBackPressed() = backPressedIntent.onNext(Unit)
 
-    override fun showEncryptionKeyDialog(conversation: Conversation) {
-        KeyInputDialog(this, getString(R.string.conversation_encryption_key_title)) { key ->
-            setEncryptionKeyIntent.onNext(Pair(conversation, key))
-        }.show()
+    override fun showEncryptionKeySettings(conversation: Conversation) {
+        (threadId as BehaviorSubject?)?.value?.let { threadId ->
+            val intent = Intent(this, KeySettingsActivity::class.java)
+                .putExtra("threadId", threadId)
+            startActivityForResult(intent, SetEncryptionKeyRequestCode)
+        }
     }
 }

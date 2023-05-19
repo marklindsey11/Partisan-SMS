@@ -44,7 +44,7 @@ open class Conversation(
     var deleteEncryptedAfter: Int = 0,
     var deleteReceivedAfter: Int = 0,
     var deleteSentAfter: Int = 0,
-    var encryptionEnabled: Boolean = false
+    var encryptionEnabled: Boolean? = null
 
 ) : RealmObject() {
 
