@@ -259,6 +259,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         sendAsGroupSwitch.isChecked = state.sendAsGroup
 
         messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
+        messageAdapter.encryptionKey.onNext(state.encryptionKey ?: "")
         messageAdapter.data = state.messages
         messageAdapter.highlight = state.searchSelectionId
 

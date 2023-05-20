@@ -6,6 +6,7 @@ import com.moez.QKSMS.common.base.QkPresenter
 import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
 import com.moez.QKSMS.interactor.SetEncodingScheme
+import com.moez.QKSMS.interactor.SetEncryptionEnabled
 import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.interactor.SetLegacyEncryptionEnabled
 import com.moez.QKSMS.model.Conversation
@@ -15,8 +16,6 @@ import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
 
@@ -25,11 +24,12 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
     @Inject lateinit var setLegacyEncryptionEnabled: SetLegacyEncryptionEnabled
     @Inject lateinit var setEncryptionKey: SetEncryptionKey
     @Inject lateinit var setEncodingScheme: SetEncodingScheme
+    @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
     @Inject lateinit var prefs: Preferences
     @Inject lateinit var conversationRepo: ConversationRepository
 
     var initialState: KeySettingsState? = null
-    private val conversation: Subject<Conversation> = BehaviorSubject.create()
+    private var conversation: Conversation? = null
 
     fun initConversationState(threadId: Long) {
         disposables += conversationRepo.getConversationAsync(threadId)
@@ -38,7 +38,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             .filter { conversation -> conversation.isValid }
             .filter { conversation -> conversation.id != 0L }
             .subscribe { conv ->
-                conversation.onNext(conv)
+                conversation = conv
 
                 initialState = KeySettingsState (
                     key = conv.encryptionKey,
@@ -237,6 +237,11 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
                 .takeIf { it != GLOBAL_SCHEME_INDEX }
                 ?: Conversation.SCHEME_NOT_DEF
             setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
+            if (conversation?.encryptionEnabled == true && lastState.key.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
+                setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, null))
+            } else if (conversation?.encryptionEnabled == null && lastState.key.isNotBlank()) {
+                setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
+            }
         } else {
             prefs.globalEncryptionKey.set(lastState.key)
             prefs.encodingScheme.set(lastState.encodingScheme)

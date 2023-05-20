@@ -433,7 +433,7 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun setEncryptionEnabled(threadId: Long, enabled: Boolean) {
+    override fun setEncryptionEnabled(threadId: Long, enabled: Boolean?) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)
                 .equalTo(Conversation::id.name, threadId)

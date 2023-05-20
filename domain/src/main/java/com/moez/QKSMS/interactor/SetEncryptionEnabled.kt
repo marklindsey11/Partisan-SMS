@@ -8,7 +8,7 @@ class SetEncryptionEnabled @Inject constructor(
     private val conversationRepo: ConversationRepository
 ) : Interactor<SetEncryptionEnabled.Params>() {
 
-    data class Params(val threadId: Long, val encryptionEnabled: Boolean)
+    data class Params(val threadId: Long, val encryptionEnabled: Boolean?)
 
     override fun buildObservable(params: Params): Flowable<*> {
         return Flowable.just(params)

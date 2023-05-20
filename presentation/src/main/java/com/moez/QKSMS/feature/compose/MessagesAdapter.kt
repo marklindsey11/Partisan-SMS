@@ -75,6 +75,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
 import android.util.Base64
+import io.reactivex.subjects.BehaviorSubject
 
 class MessagesAdapter @Inject constructor(
     subscriptionManager: SubscriptionManagerCompat,
@@ -101,6 +102,7 @@ class MessagesAdapter @Inject constructor(
     val clicks: Subject<Long> = PublishSubject.create()
     val partClicks: Subject<Long> = PublishSubject.create()
     val cancelSending: Subject<Long> = PublishSubject.create()
+    val encryptionKey: BehaviorSubject<String> = BehaviorSubject.create()
 
     var data: Pair<Conversation, RealmResults<Message>>? = null
         set(value) {
@@ -255,11 +257,10 @@ class MessagesAdapter @Inject constructor(
 
         // Bind encrypted icon
 
+        val encryptionKey = encryptionKey.value
         val isEncrypted = if (conversation != null) {
-            if (conversation!!.encryptionKey.isNotEmpty()) {
-                PSmsEncryptor().isEncrypted(message.body, Base64.decode(conversation!!.encryptionKey, Base64.DEFAULT))
-            } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
-                PSmsEncryptor().isEncrypted(message.body, Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
+            if (!encryptionKey.isNullOrEmpty()) {
+                PSmsEncryptor().isEncrypted(message.body, Base64.decode(encryptionKey, Base64.DEFAULT))
             } else {
                 false
             }
@@ -301,10 +302,8 @@ class MessagesAdapter @Inject constructor(
             false -> TextViewStyler.SIZE_PRIMARY
         })
 
-        val decryptedMessage = if (conversation != null && conversation!!.encryptionKey.isNotEmpty()) {
-            PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(conversation!!.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
-            PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
+        val decryptedMessage = if (!encryptionKey.isNullOrEmpty()) {
+            PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(encryptionKey, Base64.DEFAULT))
         } else {
             PSmsMessage(messageText.toString())
         }

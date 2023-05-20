@@ -223,6 +223,15 @@ class ComposeViewModel @Inject constructor(
                     ) }
                 }
 
+        val encryptionKeyObservable = conversation
+            .map { conversation -> conversation.encryptionKey.takeIf{ it.isNotBlank() } ?: prefs.globalEncryptionKey.get() }
+        disposables += encryptionKeyObservable
+            .subscribe { encryptionKey ->
+                newState { copy(
+                    encryptionKey = encryptionKey.takeIf { it.isNotBlank() }
+                ) }
+            }
+
         val latestSubId = messages
                 .map { messages -> messages.lastOrNull()?.subId ?: -1 }
                 .distinctUntilChanged()
@@ -319,12 +328,8 @@ class ComposeViewModel @Inject constructor(
         // Copy the message contents
         view.optionsItemIntent
                 .filter { it == R.id.copy }
-                .withLatestFrom(view.messagesSelectedIntent, conversation) { _, messageIds, conversation ->
-                    val encryptionKey = conversation.encryptionKey
-                        .takeIf { it.isNotEmpty() }
-                        ?: prefs.globalEncryptionKey.get()
-                            .takeIf { it.isNotEmpty() }
-
+                .withLatestFrom(view.messagesSelectedIntent, conversation, state) { _, messageIds, conversation, state ->
+                    val encryptionKey = state.encryptionKey
                     val messages = messageIds.mapNotNull(messageRepo::getMessage).sortedBy { it.date }
 
                     fun Message.getDecodedText() = encryptionKey?.let {
@@ -654,16 +659,7 @@ class ComposeViewModel @Inject constructor(
                 .filter { permissionManager.isDefaultSms().also { if (!it) view.requestDefaultSms() } }
                 .filter { permissionManager.hasSendSms().also { if (!it) view.requestSmsPermission() } }
                 .withLatestFrom(view.textChangedIntent, conversation, state) { _, body, conversation, state ->
-                    val encryptionKey = if (state.encryptionEnabled) {
-                        conversation.encryptionKey
-                            .takeIf { it.isNotEmpty() }
-                            ?: prefs.globalEncryptionKey.get()
-                                .takeIf { it.isNotEmpty() }
-                    } else {
-                        null
-                    }
-
-                    encryptionKey?.let {
+                    state.encryptionKey?.let { encryptionKey ->
                         val encryptionSchemeId = conversation.encodingSchemeId
                             .takeIf { it != Conversation.SCHEME_NOT_DEF }
                             ?: prefs.encodingScheme.get()
