@@ -98,7 +98,7 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     override fun render(state: KeySettingsState) {
         encryptionKeyCategory.text =
             if (!state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
-            else context.getText(R.string.settings_encryption_key_title)
+            else context.getText(R.string.settings_conversation_encryption_key_title)
 
         enableKey.checkbox.isChecked = state.keySettingsIsShown
 
@@ -205,7 +205,7 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     override fun onAttach(view: View) {
         super.onAttach(view)
         presenter.bindIntents(this)
-        setTitle(R.string.settings_category_hidden)
+        setTitle(R.string.settings_encryption_key_title)
         showBackButton(true)
         setHasOptionsMenu(true)
     }

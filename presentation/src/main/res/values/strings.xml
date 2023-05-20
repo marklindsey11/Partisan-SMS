@@ -506,6 +506,7 @@
         <item>1 hour</item>
     </string-array>
     <string name="settings_global_encryption_key_title">Global Encryption Key</string>
+    <string name="settings_conversation_encryption_key_title">Conversation Encryption Key</string>
     <string name="settings_scan_qr_title">Scan QR-code with key</string>
     <string name="settings_generate_new_key">Generate new key</string>
     <string name="conversation_delete_received_after">Delete Received Messages After</string>

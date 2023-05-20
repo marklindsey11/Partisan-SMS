@@ -440,6 +440,7 @@
         <item>1 час</item>
     </string-array>
     <string name="settings_global_encryption_key_title">Глобальный ключ шифрования</string>
+    <string name="settings_conversation_encryption_key_title">Ключ шифрования беседы</string>
     <string name="settings_generate_new_key">Сгенерировать новый ключ</string>
     <string name="settings_scan_qr_title">Сканировать QR-код с ключом</string>
     <string name="settings_reset_key">Сбросить ключ</string>

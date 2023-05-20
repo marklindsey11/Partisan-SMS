@@ -77,7 +77,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:icon="@android:drawable/ic_secure"
-        app:title="@string/settings_category_hidden" />
+        app:title="@string/settings_conversation_encryption_key_title" />
 
     <View
         android:id="@+id/hiddenSeparator"
