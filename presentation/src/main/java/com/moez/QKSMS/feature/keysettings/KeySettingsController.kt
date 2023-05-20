@@ -97,7 +97,7 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
 
     override fun render(state: KeySettingsState) {
         encryptionKeyCategory.text =
-            if (state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
+            if (!state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_encryption_key_title)
 
         enableKey.checkbox.isChecked = state.keySettingsIsShown
