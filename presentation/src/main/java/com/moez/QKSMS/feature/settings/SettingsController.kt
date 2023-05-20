@@ -138,7 +138,7 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
         mmsSizeDialog.adapter.setData(R.array.mms_sizes, R.array.mms_sizes_ids)
         deleteEncryptedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
 
-        about.summary = context.getString(R.string.settings_version, "2.2.0", BuildConfig.VERSION_NAME, by.cyberpartisan.psms.VERSION.toString())
+        about.summary = context.getString(R.string.settings_version, "2.2.1", BuildConfig.VERSION_NAME, by.cyberpartisan.psms.VERSION.toString())
     }
 
     override fun onAttach(view: View) {
