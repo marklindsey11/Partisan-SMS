@@ -445,6 +445,15 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun hasConversationEncryptionKey(): Boolean {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .isNotEmpty("encryptionKey")
+                .findFirst()
+            return conversation != null
+        }
+    }
+
     override fun setEncodingScheme(threadId: Long, encodingSchemeId: Int) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)

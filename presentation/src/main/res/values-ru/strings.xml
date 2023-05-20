@@ -477,6 +477,6 @@
     <string name="settings_messages_delete">Удаление сообщений</string>
     <string name="settings_exit_with_no_changes">Выйти без сохранения изменений?</string>
     <string name="settings_delete_ecnryption_key">Удалить ключ шифрования?</string>
-    <string name="global_key_isnt_set">Глобальный ключ не установлен!</string>
+    <string name="global_key_isnt_set">Ключ шифрования не установлен!</string>
     <string name="global_key_set">Настроить</string>
 </resources>

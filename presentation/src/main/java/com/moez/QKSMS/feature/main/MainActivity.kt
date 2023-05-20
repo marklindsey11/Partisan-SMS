@@ -191,7 +191,7 @@ class MainActivity : QkThemedActivity(), MainView {
         if (Build.VERSION.SDK_INT <= 22) {
             toolbarSearch.setBackgroundTint(resolveThemeColor(R.attr.bubbleColor))
         }
-        if (prefs.globalEncryptionKey.get().isEmpty()) {
+        if (prefs.globalEncryptionKey.get().isEmpty() && !conversationRepo.hasConversationEncryptionKey()) {
             Snackbar.make(drawerLayout, R.string.global_key_isnt_set, Snackbar.LENGTH_LONG)
                 .setAction(R.string.global_key_set) { navigator.showGlobalKeysSettings() }
                 .show()
