@@ -99,14 +99,7 @@ class ConversationInfoPresenter @Inject constructor(
                             recipients = conversation.recipients,
                             archived = conversation.archived,
                             blocked = conversation.blocked,
-                            encryptionKey = conversation.encryptionKey,
-                            encodingSchemeId = conversation.encodingSchemeId
-                                .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                                ?: GLOBAL_SCHEME_INDEX,
-                            encodingSchemeSummary = conversation.encodingSchemeId
-                                .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                                ?.let { encodingSchemeDialogLabels[it] }
-                                ?: "",
+                            encryptionKeyExist = conversation.encryptionKey.isNotBlank(),
                             deleteEncryptedAfter = conversation.deleteEncryptedAfter,
                             deleteReceivedAfter = conversation.deleteReceivedAfter,
                             deleteSentAfter = conversation.deleteSentAfter)

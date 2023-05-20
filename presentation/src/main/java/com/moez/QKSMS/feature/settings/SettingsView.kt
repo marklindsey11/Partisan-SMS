@@ -38,7 +38,6 @@ interface SettingsView : QkViewContract<SettingsState> {
     fun smsForResetSet(): Observable<String>
     fun hiddenKeySet(): Observable<String>
     fun deleteEncryptedAfterSelected(): Observable<Int>
-    fun encodingSchemeSelected(): Observable<Int>
 
     fun showQksmsPlusSnackbar()
     fun showNightModeDialog()
@@ -53,9 +52,8 @@ interface SettingsView : QkViewContract<SettingsState> {
     fun showSwipeActions()
     fun showThemePicker()
     fun showAbout()
-    fun showGlobalEncryptionKeyDialog(globalEncryptionKey: String)
+    fun showGlobalEncryptionKeySettings()
     fun showSmsForResetDialog(smsForReset: String)
     fun showHiddenKeyDialog(hiddenKey: String)
     fun showDeleteEncryptedAfterDialog()
-    fun showEncodingSchemeDialog()
 }

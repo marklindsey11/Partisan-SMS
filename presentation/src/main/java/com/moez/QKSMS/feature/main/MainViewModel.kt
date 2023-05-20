@@ -287,7 +287,6 @@ class MainViewModel @Inject constructor(
                         NavItem.PLUS -> navigator.showQksmsPlusActivity("main_menu")
                         NavItem.HELP -> navigator.showSupport()
                         NavItem.INVITE -> navigator.showInvite()
-                        NavItem.KEYS_SETTINGS -> navigator.showKeysSettings()
                         else -> Unit
                     }
                     drawerItem

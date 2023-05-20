@@ -109,7 +109,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
 
         view.keyDeletionConfirmed
             .autoDisposable(view.scope())
-            .subscribe { newState { copy(keySettingsIsShown = false, key = "", keyValid = true) }}
+            .subscribe { newState { copy(keySettingsIsShown = false, key = "", keyValid = false) }}
 
         view.compatibilityModeSelected()
             .autoDisposable(view.scope())

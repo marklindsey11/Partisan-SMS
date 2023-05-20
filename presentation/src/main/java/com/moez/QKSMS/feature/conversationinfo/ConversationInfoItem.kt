@@ -14,9 +14,7 @@ sealed class ConversationInfoItem {
         val archived: Boolean,
         val blocked: Boolean,
         // hidden
-        val encryptionKey: String,
-        val encodingSchemeId: Int,
-        val encodingSchemeSummary: String,
+        val encryptionKeyExist: Boolean,
         val deleteEncryptedAfter: Int,
         var deleteReceivedAfter: Int,
         var deleteSentAfter: Int

@@ -54,8 +54,6 @@ import com.moez.QKSMS.feature.blocking.BlockingDialog
 import com.moez.QKSMS.feature.changelog.ChangelogDialog
 import com.moez.QKSMS.feature.conversations.ConversationItemTouchCallback
 import com.moez.QKSMS.feature.conversations.ConversationsAdapter
-import com.moez.QKSMS.feature.settings.SettingsController
-import com.moez.QKSMS.feature.settings.SettingsPresenter
 import com.moez.QKSMS.manager.ChangelogManager
 import com.moez.QKSMS.repository.SyncRepository
 import com.uber.autodispose.android.lifecycle.scope
@@ -104,8 +102,7 @@ class MainActivity : QkThemedActivity(), MainView {
                 settings.clicks().map { NavItem.SETTINGS },
                 plus.clicks().map { NavItem.PLUS },
                 help.clicks().map { NavItem.HELP },
-                invite.clicks().map { NavItem.INVITE },
-                keysSettingsIsSet.clicks().map { NavItem.KEYS_SETTINGS}))
+                invite.clicks().map { NavItem.INVITE }))
     }
     override val optionsItemIntent: Subject<Int> = PublishSubject.create()
     override val plusBannerIntent by lazy { plusBanner.clicks() }
@@ -196,7 +193,7 @@ class MainActivity : QkThemedActivity(), MainView {
         }
         if (prefs.globalEncryptionKey.get().isEmpty()) {
             Snackbar.make(drawerLayout, R.string.global_key_isnt_set, Snackbar.LENGTH_LONG)
-                .setAction(R.string.global_key_set) { navigator.showKeysSettings() }
+                .setAction(R.string.global_key_set) { navigator.showGlobalKeysSettings() }
                 .show()
         }
     }
@@ -239,15 +236,6 @@ class MainActivity : QkThemedActivity(), MainView {
         toolbarSearch.setVisible(state.page is Inbox && state.page.selected == 0 || state.page is Searching)
         toolbarTitle.setVisible(toolbarSearch.visibility != View.VISIBLE)
 
-        with(keysSettingsIsSet) {
-            if (state.keysIsUnset) {
-                setImageResource(R.drawable.ic_lock_open_24dp)
-                setTint(colors.theme().theme)
-            } else {
-                setImageResource(R.drawable.ic_lock_24dp)
-                setTint(Color.GRAY)
-            }
-        }
         toolbar.menu.findItem(R.id.archive)?.isVisible = state.page is Inbox && selectedConversations != 0
         toolbar.menu.findItem(R.id.unarchive)?.isVisible = state.page is Archived && selectedConversations != 0
         toolbar.menu.findItem(R.id.delete)?.isVisible = selectedConversations != 0

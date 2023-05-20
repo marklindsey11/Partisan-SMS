@@ -56,4 +56,4 @@ interface MainView : QkView<MainState> {
     fun showGenerateKeyDialog()
 }
 
-enum class NavItem { BACK, INBOX, ARCHIVED, BACKUP, SCHEDULED, BLOCKING, SETTINGS, PLUS, HELP, INVITE, KEYS_SETTINGS }
+enum class NavItem { BACK, INBOX, ARCHIVED, BACKUP, SCHEDULED, BLOCKING, SETTINGS, PLUS, HELP, INVITE }

@@ -117,7 +117,7 @@ class ConversationInfoAdapter @Inject constructor(
 
                 // hidden
                 holder.encryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
-                holder.encryptionKey.summary = if (item.encryptionKey.isNotEmpty()) "***" else ""
+                holder.encryptionKey.summary = if (item.encryptionKeyExist) "***" else ""
                 holder.hiddenSeparator.isVisible = HiddenSettingsSingleton.hiddenEnabled
             }
 

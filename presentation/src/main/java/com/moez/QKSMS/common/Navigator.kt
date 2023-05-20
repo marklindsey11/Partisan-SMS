@@ -28,7 +28,6 @@ import android.provider.Settings
 import android.provider.Telephony
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import com.moez.QKSMS.BuildConfig
 import com.moez.QKSMS.feature.backup.BackupActivity
 import com.moez.QKSMS.feature.blocking.BlockingActivity
 import com.moez.QKSMS.feature.compose.ComposeActivity
@@ -105,7 +104,7 @@ class Navigator @Inject constructor(
         startActivity(intent)
     }
 
-    fun showKeysSettings() {
+    fun showGlobalKeysSettings() {
         val intent = Intent(context, KeySettingsActivity::class.java)
             .putExtra("threadId", -1L)
         startActivity(intent)
