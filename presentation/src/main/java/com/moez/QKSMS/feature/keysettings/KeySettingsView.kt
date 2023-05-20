@@ -24,7 +24,7 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     fun schemeChanged(): Observable<Int>
     fun keyChanged(): Observable<String>
     fun showDeleteKeyDialog()
-    fun showSaveDialog(valid: Boolean)
+    fun showSaveDialog(allowSave: Boolean)
     fun showCompatibilityModeDialog()
     fun goBack()
     fun onSaved(key: String?)

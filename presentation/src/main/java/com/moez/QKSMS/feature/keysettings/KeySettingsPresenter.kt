@@ -149,7 +149,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
         view.backClicked
             .withLatestFrom(state) { _, latestState ->
                 if (latestState != initialState) {
-                    view.showSaveDialog(latestState.keyValid)
+                    view.showSaveDialog(latestState.allowSave)
                 } else {
                     view.goBack()
                 }

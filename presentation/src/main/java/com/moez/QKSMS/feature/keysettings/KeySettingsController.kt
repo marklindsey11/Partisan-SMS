@@ -26,7 +26,6 @@ import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.widget.PreferenceView
-import com.moez.QKSMS.feature.contacts.ContactsActivity
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
@@ -283,12 +282,12 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
             .show()
     }
 
-    override fun showSaveDialog(valid: Boolean) {
+    override fun showSaveDialog(allowSave: Boolean) {
         val builder = AlertDialog.Builder(this.activity)
             .setMessage(R.string.settings_exit_with_no_changes)
             .setNeutralButton(R.string.button_cancel, null)
             .setNegativeButton(R.string.rate_dismiss) { _, _ -> exitWithSavingIntent.onNext(false) }
-        if (valid) {
+        if (allowSave) {
             builder.setPositiveButton(R.string.button_save) { _, _ -> exitWithSavingIntent.onNext(true) }
         }
         builder.create().show()
