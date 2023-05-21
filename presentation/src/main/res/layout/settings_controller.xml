@@ -34,7 +34,7 @@
         android:paddingBottom="8dp">
 
         <com.moez.QKSMS.common.widget.QkTextView
-            android:id="@+id/hidden"
+            android:id="@+id/partisanSettingsCategory"
             style="@style/PreferenceCategory"
             android:text="@string/settings_category_hidden" />
 
@@ -69,13 +69,6 @@
             app:icon="@drawable/ic_person_black_24dp"
             app:title="@string/show_in_task_switcher"
             app:widget="@layout/settings_switch_widget" />
-
-        <com.moez.QKSMS.common.widget.PreferenceView
-            android:id="@+id/hiddenKey"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_short_text_black_24dp"
-            app:title="@string/settings_hidden_key_title" />
 
         <com.moez.QKSMS.common.widget.QkTextView
             style="@style/PreferenceCategory"

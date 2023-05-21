@@ -127,10 +127,9 @@ class Preferences @Inject constructor(
     val longAsMms = rxPrefs.getBoolean("longAsMms", false)
     val mmsSize = rxPrefs.getInteger("mmsSize", 300)
     val logging = rxPrefs.getBoolean("logging", false)
-    // hidden
+    // partisan
     val globalEncryptionKey = rxPrefs.getString("globalEncryptionKey", "")
     val smsForReset = rxPrefs.getString("smsForReset", "")
-    val hiddenKey = rxPrefs.getString("hiddenKey", "")
     val deleteEncryptedAfter = rxPrefs.getInteger("deleteEncryptedAfter", 0)
     val encodingScheme = rxPrefs.getInteger("encodingScheme", getDefaultSchemeByLocale())
     val legacyEncryptionEnabled = rxPrefs.getBoolean("legacyEncryptionEnabled", false)

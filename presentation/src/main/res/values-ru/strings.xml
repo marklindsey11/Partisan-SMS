@@ -424,7 +424,6 @@
     </string-array>
     <string name="settings_category_hidden">Партизанские настройки</string>
     <string name="conversation_encryption_key_title">Ключ шифрования</string>
-    <string name="settings_hidden_key_title">"Пароль скрытых настроек"</string>
     <string name="settings_delete_encrypted_after_title">Удалять зашифрованные сообщения через</string>
     <string name="settings_delete_encrypted_after_default">Не удалять</string>
     <string-array name="delete_message_after_labels">

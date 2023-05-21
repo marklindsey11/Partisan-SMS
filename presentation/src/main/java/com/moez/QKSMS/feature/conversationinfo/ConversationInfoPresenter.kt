@@ -194,7 +194,7 @@ class ConversationInfoPresenter @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe(navigator::showMedia)
 
-        // Hidden
+        // Partisan
         view.encryptionKeyClicks()
                 .withLatestFrom(conversation) { _, conversation -> conversation }
                 .autoDisposable(view.scope())

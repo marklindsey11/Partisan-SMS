@@ -13,7 +13,7 @@ sealed class ConversationInfoItem {
         val recipients: RealmList<Recipient>,
         val archived: Boolean,
         val blocked: Boolean,
-        // hidden
+        // partisan
         val encryptionKeyExist: Boolean,
         val deleteEncryptedAfter: Int,
         var deleteReceivedAfter: Int,

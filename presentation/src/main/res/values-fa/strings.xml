@@ -413,7 +413,6 @@
     </string-array>
     <string name="settings_category_hidden">Partisan تنظیمات</string>
     <string name="conversation_encryption_key_title">کد رمزگذاری</string>
-    <string name="settings_hidden_key_title">گذرواژه تنظیمات پنهان شده</string>
     <string name="settings_delete_encrypted_after_title">حذف پیامهای رمز شده پس از</string>
     <string name="settings_delete_encrypted_after_default">حذف نکن</string>
     <string-array name="delete_message_after_labels">

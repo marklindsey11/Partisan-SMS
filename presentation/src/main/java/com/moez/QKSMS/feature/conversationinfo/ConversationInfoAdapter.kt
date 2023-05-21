@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.R
-import com.moez.QKSMS.common.HiddenSettingsSingleton
 import com.moez.QKSMS.common.base.QkAdapter
 import com.moez.QKSMS.common.base.QkViewHolder
 import com.moez.QKSMS.common.util.Colors
@@ -115,10 +114,8 @@ class ConversationInfoAdapter @Inject constructor(
                     false -> R.string.info_block
                 })
 
-                // hidden
-                holder.encryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
+                // partisan
                 holder.encryptionKey.summary = if (item.encryptionKeyExist) "***" else ""
-                holder.hiddenSeparator.isVisible = HiddenSettingsSingleton.hiddenEnabled
             }
 
             is ConversationInfoMedia -> {

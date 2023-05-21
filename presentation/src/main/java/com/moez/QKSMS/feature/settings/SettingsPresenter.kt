@@ -127,7 +127,7 @@ class SettingsPresenter @Inject constructor(
         disposables += prefs.longAsMms.asObservable()
                 .subscribe { enabled -> newState { copy(longAsMms = enabled) } }
 
-        // hidden
+        // partisan
         disposables += prefs.globalEncryptionKey.asObservable()
                 .subscribe { globalEncryptionKey -> newState { copy(globalEncryptionKey = globalEncryptionKey) } }
 
@@ -136,9 +136,6 @@ class SettingsPresenter @Inject constructor(
 
         disposables += prefs.showInTaskSwitcher.asObservable()
                 .subscribe { showInTaskSwitcher -> newState { copy(showInTaskSwitcher = showInTaskSwitcher) } }
-
-        disposables += prefs.hiddenKey.asObservable()
-                .subscribe { hiddenKey -> newState { copy(hiddenKey = hiddenKey) } }
 
         val deleteEncryptedAfterDialogLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
         disposables += prefs.deleteEncryptedAfter.asObservable()
@@ -229,8 +226,6 @@ class SettingsPresenter @Inject constructor(
                         R.id.globalEncryptionKey -> view.showGlobalEncryptionKeySettings()
 
                         R.id.smsForReset -> view.showSmsForResetDialog(prefs.smsForReset.get())
-
-                        R.id.hiddenKey -> view.showHiddenKeyDialog(prefs.hiddenKey.get())
 
                         R.id.deleteEncryptedAfter -> view.showDeleteEncryptedAfterDialog()
 
@@ -323,7 +318,7 @@ class SettingsPresenter @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe(prefs.mmsSize::set)
 
-        // hidden
+        // partisan
 
         view.globalEncryptionKeySet()
                 .doOnNext(prefs.globalEncryptionKey::set)
@@ -332,11 +327,6 @@ class SettingsPresenter @Inject constructor(
 
         view.smsForResetSet()
                 .doOnNext(prefs.smsForReset::set)
-                .autoDisposable(view.scope())
-                .subscribe()
-
-        view.hiddenKeySet()
-                .doOnNext{key -> prefs.hiddenKey.set(key.toLowerCase(Locale.ROOT)) }
                 .autoDisposable(view.scope())
                 .subscribe()
 

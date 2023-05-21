@@ -20,7 +20,6 @@ package com.moez.QKSMS.feature.main
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.moez.QKSMS.R
-import com.moez.QKSMS.common.HiddenSettingsSingleton
 import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.base.QkViewModel
 import com.moez.QKSMS.extensions.mapNotNull
@@ -211,9 +210,6 @@ class MainViewModel @Inject constructor(
                 .withLatestFrom(state) { query, state ->
                     if (query.isEmpty() && state.page is Searching) {
                         newState { copy(page = Inbox(data = conversationRepo.getConversations())) }
-                    }
-                    if (query.toString().toLowerCase(Locale.ROOT) == prefs.hiddenKey.get()) {
-                        HiddenSettingsSingleton.hiddenEnabled = true
                     }
                     query
                 }
