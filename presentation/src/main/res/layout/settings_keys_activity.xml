@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="32dp"
             android:overScrollMode="never"
-            tools:itemCount="3"
+            tools:itemCount="4"
             tools:listitem="@layout/settings_keys_radio_button_list_item" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
