@@ -479,4 +479,9 @@
     <string name="settings_delete_ecnryption_key">Удалить ключ шифрования?</string>
     <string name="global_key_isnt_set">Ключ шифрования не установлен!</string>
     <string name="global_key_set">Настроить</string>
+    <string-array name="compatibility_mode_settings_conversation">
+        <item>Использовать режим из настроек</item>
+        <item>Отключён</item>
+        <item>Включён</item>
+    </string-array>
 </resources>
