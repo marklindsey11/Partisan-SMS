@@ -72,13 +72,14 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     override val optionsItemIntent: Subject<Int> = PublishSubject.create()
     override val backClicked: Subject<Unit> = PublishSubject.create()
     override val exitWithSavingIntent: Subject<Boolean> = PublishSubject.create()
-    override val qrScanned: Subject<String> = PublishSubject.create()
+    override val qrScannedIntent: Subject<String> = PublishSubject.create()
 
     private val keyTextWatcher = KeyTextWatcher()
     private val deleteEncryptedAfterListener = SeekBarListener()
     private val deleteReceivedAfterListener = SeekBarListener()
     private val deleteSentAfterListener = SeekBarListener()
     private lateinit var schemesListAdapter: EncryptionSchemeListAdapter
+    private var scannedQr: String? = null
 
     init {
         appComponent.inject(this)
@@ -204,9 +205,18 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     override fun onAttach(view: View) {
         super.onAttach(view)
         presenter.bindIntents(this)
+        checkScannedQr()
         setTitle(R.string.settings_encryption_key_title)
         showBackButton(true)
         setHasOptionsMenu(true)
+    }
+
+    private fun checkScannedQr() {
+        val qr = scannedQr
+        if (qr != null) {
+            qrScannedIntent.onNext(qr)
+            scannedQr = null
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -256,7 +266,7 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
         if (requestCode == ScanQrRequestCode) {
             val qrResult = IntentIntegrator.parseActivityResult(resultCode, data)
             if (qrResult != null && qrResult.contents != null) {
-                qrScanned.onNext(qrResult.contents)
+                scannedQr = qrResult.contents
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)

@@ -10,7 +10,7 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     val optionsItemIntent: Subject<Int>
     val backClicked: Subject<Unit>
     val exitWithSavingIntent: Subject<Boolean>
-    val qrScanned: Subject<String>
+    val qrScannedIntent: Subject<String>
 
     fun preferenceClicks(): Observable<PreferenceView>
     fun compatibilityModeSelected(): Observable<Int>

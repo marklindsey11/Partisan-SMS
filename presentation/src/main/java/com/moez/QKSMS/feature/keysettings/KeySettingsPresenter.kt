@@ -167,7 +167,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             .autoDisposable(view.scope())
             .subscribe()
 
-        view.qrScanned
+        view.qrScannedIntent
             .autoDisposable(view.scope())
             .subscribe {key ->
                 if (validateKey(key)) {
