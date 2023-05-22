@@ -16,57 +16,66 @@ import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.Subject
 import javax.crypto.KeyGenerator
 import javax.inject.Inject
+import javax.inject.Named
 
-class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, KeySettingsState>(KeySettingsState()) {
-    @Inject lateinit var setDeleteMessagesAfter: SetDeleteMessagesAfter
-    @Inject lateinit var setLegacyEncryptionEnabled: SetLegacyEncryptionEnabled
-    @Inject lateinit var setEncryptionKey: SetEncryptionKey
-    @Inject lateinit var setEncodingScheme: SetEncodingScheme
-    @Inject lateinit var setEncryptionEnabled: SetEncryptionEnabled
-    @Inject lateinit var prefs: Preferences
-    @Inject lateinit var conversationRepo: ConversationRepository
+class KeySettingsPresenter @Inject constructor(
+    @Named("keySettingsConversationThreadId") threadId: Long,
+    private val setDeleteMessagesAfter: SetDeleteMessagesAfter,
+    private val setLegacyEncryptionEnabled: SetLegacyEncryptionEnabled,
+    private val setEncryptionKey: SetEncryptionKey,
+    private val setEncodingScheme: SetEncodingScheme,
+    private val setEncryptionEnabled: SetEncryptionEnabled,
+    private val prefs: Preferences,
+    conversationRepo: ConversationRepository
+) : QkPresenter<KeySettingsView, KeySettingsState>(
+    KeySettingsState(threadId = threadId)
+) {
 
     var initialState: KeySettingsState? = null
-    private var conversation: Conversation? = null
+    private var conversation: Subject<Conversation> = BehaviorSubject.create()
 
-    fun initConversationState(threadId: Long) {
-        disposables += conversationRepo.getConversationAsync(threadId)
-            .asObservable()
-            .filter { conversation -> conversation.isLoaded }
-            .filter { conversation -> conversation.isValid }
-            .filter { conversation -> conversation.id != 0L }
-            .subscribe { conv ->
-                conversation = conv
+    init {
+        if (threadId == -1L) {
+            initialState = KeySettingsState (
+                key = prefs.globalEncryptionKey.get(),
+                keySettingsIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
+                keyValid = validateKey(prefs.globalEncryptionKey.get()),
+                encodingScheme = prefs.encodingScheme.get(),
+                legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
+                initialized = true,
+            )
+            newState { initialState!! }
+        } else {
+            disposables += conversationRepo.getConversationAsync(threadId)
+                .asObservable()
+                .filter { conversation -> conversation.isLoaded }
+                .filter { conversation -> conversation.isValid }
+                .filter { conversation -> conversation.id != 0L }
+                .subscribe { conv ->
+                    conversation.onNext(conv)
 
-                initialState = KeySettingsState (
-                    key = conv.encryptionKey,
-                    keySettingsIsShown = conv.encryptionKey.isNotEmpty(),
-                    keyValid = validateKey(conv.encryptionKey),
-                    encodingScheme = conv.encodingSchemeId
-                        .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                        ?: GLOBAL_SCHEME_INDEX,
-                    legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
-                    deleteEncryptedAfter = conv.deleteEncryptedAfter,
-                    deleteReceivedAfter = conv.deleteReceivedAfter,
-                    deleteSentAfter = conv.deleteSentAfter,
-                    threadId = threadId,
-                )
+                    initialState = KeySettingsState (
+                        key = conv.encryptionKey,
+                        keySettingsIsShown = conv.encryptionKey.isNotEmpty(),
+                        keyValid = validateKey(conv.encryptionKey),
+                        encodingScheme = conv.encodingSchemeId
+                            .takeIf { it != Conversation.SCHEME_NOT_DEF }
+                            ?: GLOBAL_SCHEME_INDEX,
+                        legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
+                        deleteEncryptedAfter = conv.deleteEncryptedAfter,
+                        deleteReceivedAfter = conv.deleteReceivedAfter,
+                        deleteSentAfter = conv.deleteSentAfter,
+                        threadId = threadId,
+                        initialized = true,
+                    )
 
-                newState { initialState!! }
-            }
-    }
-
-    fun initGlobalState() {
-        initialState = KeySettingsState (
-            key = prefs.globalEncryptionKey.get(),
-            keySettingsIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
-            keyValid = validateKey(prefs.globalEncryptionKey.get()),
-            encodingScheme = prefs.encodingScheme.get(),
-            legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
-        )
-        newState { initialState!! }
+                    newState { initialState!! }
+                }
+        }
     }
 
     override fun bindIntents(view: KeySettingsView) {
@@ -130,12 +139,12 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             }
 
         view.optionsItemIntent
-            .withLatestFrom(state) { itemId, lastState ->
+            .withLatestFrom(state, conversation) { itemId, lastState, conv ->
                 when(itemId) {
                     R.id.confirm -> {
                         if (lastState.allowSave) {
                             if (lastState != initialState) {
-                                saveChanges(lastState, view)
+                                saveChanges(lastState, conv, view)
                             }
                             view.goBack()
                         }
@@ -158,9 +167,9 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
             .subscribe()
 
         view.exitWithSavingIntent
-            .withLatestFrom(state) { withSaving, lastState ->
+            .withLatestFrom(state, conversation) { withSaving, lastState, conv ->
                 if (withSaving) {
-                    saveChanges(lastState, view)
+                    saveChanges(lastState, conv, view)
                 }
                 view.goBack()
             }
@@ -222,7 +231,7 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
         return Base64.encodeToString(keyGen.generateKey().encoded, Base64.NO_WRAP)
     }
 
-    private fun saveChanges(lastState: KeySettingsState, view: KeySettingsView) {
+    private fun saveChanges(lastState: KeySettingsState, conversation: Conversation, view: KeySettingsView) {
         if (!lastState.allowSave) {
             return
         }
@@ -237,9 +246,9 @@ class KeySettingsPresenter @Inject constructor() : QkPresenter<KeySettingsView, 
                 .takeIf { it != GLOBAL_SCHEME_INDEX }
                 ?: Conversation.SCHEME_NOT_DEF
             setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
-            if (conversation?.encryptionEnabled == true && lastState.key.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
+            if (conversation.encryptionEnabled == true && lastState.key.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
                 setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, null))
-            } else if (conversation?.encryptionEnabled == null && lastState.key.isNotBlank()) {
+            } else if (conversation.encryptionEnabled == null && lastState.key.isNotBlank()) {
                 setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
             }
         } else {

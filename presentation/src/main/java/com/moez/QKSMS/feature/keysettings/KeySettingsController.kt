@@ -24,8 +24,8 @@ import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
-import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.widget.PreferenceView
+import com.moez.QKSMS.feature.keysettings.injection.KeySettingsModule
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.util.Preferences
 import io.reactivex.Observable
@@ -48,7 +48,9 @@ import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
 import javax.inject.Inject
 
 
-class KeySettingsController : QkController<KeySettingsView, KeySettingsState, KeySettingsPresenter>(), KeySettingsView {
+class KeySettingsController(
+    val threadId: Long = -1
+) : QkController<KeySettingsView, KeySettingsState, KeySettingsPresenter>(), KeySettingsView {
 
     companion object {
         const val EncryptionKeyKey = "encryption_key"
@@ -76,7 +78,11 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     private var scannedQr: String? = null
 
     init {
-        appComponent.inject(this)
+        appComponent
+            .keySettingsBuilder()
+            .keySettingsModule(KeySettingsModule(this))
+            .build()
+            .inject(this)
         retainViewMode = RetainViewMode.RETAIN_DETACH
         layoutRes = R.layout.settings_keys_activity
     }
@@ -90,6 +96,9 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
     override fun compatibilityModeSelected(): Observable<Int> = compatibilityModeDialog.adapter.menuItemClicks
 
     override fun render(state: KeySettingsState) {
+        if (!state.initialized) {
+            return
+        }
         encryptionKeyCategory.text =
             if (!state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_conversation_encryption_key_title)
@@ -158,14 +167,7 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
 
     override fun onViewCreated() {
         super.onViewCreated()
-
-        val threadId = requireActivity().intent.getLongExtra("threadId", -1)
         schemesListAdapter = EncryptionSchemeListAdapter(context, threadId != -1L, colors, prefs)
-        if (threadId == -1L) {
-            presenter.initGlobalState()
-        } else {
-            presenter.initConversationState(threadId)
-        }
 
         preferences.postDelayed( { preferences?.animateLayoutChanges = true }, 100)
         encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)

@@ -21,7 +21,8 @@ class KeySettingsActivity: QkThemedActivity() {
 
         router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(KeySettingsController()))
+            val threadId = intent.extras?.getLong("threadId") ?: -1L
+            router.setRoot(RouterTransaction.with(KeySettingsController(threadId)))
         }
     }
 

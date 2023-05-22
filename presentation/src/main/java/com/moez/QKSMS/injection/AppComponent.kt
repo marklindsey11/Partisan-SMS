@@ -36,6 +36,7 @@ import com.moez.QKSMS.feature.blocking.numbers.BlockedNumbersController
 import com.moez.QKSMS.feature.compose.editing.DetailedChipView
 import com.moez.QKSMS.feature.conversationinfo.injection.ConversationInfoComponent
 import com.moez.QKSMS.feature.keysettings.KeySettingsController
+import com.moez.QKSMS.feature.keysettings.injection.KeySettingsComponent
 import com.moez.QKSMS.feature.settings.SettingsController
 import com.moez.QKSMS.feature.settings.about.AboutController
 import com.moez.QKSMS.feature.settings.swipe.SwipeActionsController
@@ -58,6 +59,7 @@ import javax.inject.Singleton
 interface AppComponent {
 
     fun conversationInfoBuilder(): ConversationInfoComponent.Builder
+    fun keySettingsBuilder(): KeySettingsComponent.Builder
     fun themePickerBuilder(): ThemePickerComponent.Builder
 
     fun inject(application: QKApplication)
@@ -69,7 +71,6 @@ interface AppComponent {
     fun inject(controller: BlockingController)
     fun inject(controller: BlockingManagerController)
     fun inject(controller: SettingsController)
-    fun inject(controller: KeySettingsController)
     fun inject(controller: SwipeActionsController)
 
     fun inject(dialog: QkDialog)

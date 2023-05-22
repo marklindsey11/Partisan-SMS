@@ -1,6 +1,7 @@
 package com.moez.QKSMS.feature.keysettings
 
 data class KeySettingsState(
+    val initialized: Boolean = false,
     val threadId: Long = -1L,
     val key: String = "",
     val keySettingsIsShown: Boolean = false,

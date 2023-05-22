@@ -18,7 +18,6 @@
  */
 package com.moez.QKSMS.injection
 
-import android.app.Activity
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
@@ -26,8 +25,6 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import androidx.lifecycle.ViewModelProvider
 import com.f2prateek.rx.preferences2.RxSharedPreferences
-import com.google.zxing.integration.android.IntentIntegrator
-import com.google.zxing.qrcode.QRCodeReader
 import com.google.zxing.qrcode.QRCodeWriter
 import com.moez.QKSMS.blocking.BlockingClient
 import com.moez.QKSMS.blocking.BlockingManager
@@ -36,6 +33,7 @@ import com.moez.QKSMS.common.util.BillingManagerImpl
 import com.moez.QKSMS.common.util.NotificationManagerImpl
 import com.moez.QKSMS.common.util.ShortcutManagerImpl
 import com.moez.QKSMS.feature.conversationinfo.injection.ConversationInfoComponent
+import com.moez.QKSMS.feature.keysettings.injection.KeySettingsComponent
 import com.moez.QKSMS.feature.themepicker.injection.ThemePickerComponent
 import com.moez.QKSMS.listener.ContactAddedListener
 import com.moez.QKSMS.listener.ContactAddedListenerImpl
@@ -96,6 +94,7 @@ import javax.inject.Singleton
 
 @Module(subcomponents = [
     ConversationInfoComponent::class,
+    KeySettingsComponent::class,
     ThemePickerComponent::class])
 class AppModule(private var application: Application) {
 
