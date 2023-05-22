@@ -659,28 +659,32 @@ class ComposeViewModel @Inject constructor(
                 .filter { permissionManager.isDefaultSms().also { if (!it) view.requestDefaultSms() } }
                 .filter { permissionManager.hasSendSms().also { if (!it) view.requestSmsPermission() } }
                 .withLatestFrom(view.textChangedIntent, conversation, state) { _, body, conversation, state ->
-                    state.encryptionKey?.let { encryptionKey ->
-                        val encryptionSchemeId = conversation.encodingSchemeId
-                            .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                            ?: prefs.encodingScheme.get()
+                    if (state.encryptionEnabled) {
+                        state.encryptionKey?.let { encryptionKey ->
+                            val encryptionSchemeId = conversation.encodingSchemeId
+                                .takeIf { it != Conversation.SCHEME_NOT_DEF }
+                                ?: prefs.encodingScheme.get()
 
-                        val legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled
-                            ?: prefs.legacyEncryptionEnabled.get()
+                            val legacyEncryptionEnabled = conversation?.legacyEncryptionEnabled
+                                ?: prefs.legacyEncryptionEnabled.get()
 
-                        if (legacyEncryptionEnabled) {
-                            PSmsEncryptor().encodeLegacy(
-                                message = PSmsMessage(body.toString()),
-                                key = Base64.decode(encryptionKey, Base64.DEFAULT),
-                                encryptionSchemeId = encryptionSchemeId
-                            )
-                        } else {
-                            PSmsEncryptor().encode(
-                                message = PSmsMessage(body.toString()),
-                                key = Base64.decode(encryptionKey, Base64.DEFAULT),
-                                encryptionSchemeId = encryptionSchemeId
-                            )
+                            if (legacyEncryptionEnabled) {
+                                PSmsEncryptor().encodeLegacy(
+                                    message = PSmsMessage(body.toString()),
+                                    key = Base64.decode(encryptionKey, Base64.DEFAULT),
+                                    encryptionSchemeId = encryptionSchemeId
+                                )
+                            } else {
+                                PSmsEncryptor().encode(
+                                    message = PSmsMessage(body.toString()),
+                                    key = Base64.decode(encryptionKey, Base64.DEFAULT),
+                                    encryptionSchemeId = encryptionSchemeId
+                                )
+                            }
                         }
-                    } ?: body
+                    } else {
+                        body
+                    }
                 }
                 .map { body -> body.toString() }
                 .withLatestFrom(state, attachments, conversation, selectedChips) { body, state, attachments,
