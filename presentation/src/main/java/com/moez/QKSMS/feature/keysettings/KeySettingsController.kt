@@ -44,7 +44,6 @@ import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
 import kotlinx.android.synthetic.main.settings_keys_activity.resetKey
 import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_deletion
 import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
 import javax.inject.Inject
 
@@ -153,8 +152,6 @@ class KeySettingsController(
 
         schemesListAdapter.setSelected(state.encodingScheme)
         schemesListAdapter.setEnabled(nonKeyEncryptionSettingsEnabled)
-
-        settings_deletion.visibility = if (state.isConversation) View.VISIBLE else View.GONE
     }
 
     private fun renderQr(key: String) {
