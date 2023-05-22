@@ -3,6 +3,7 @@ package com.moez.QKSMS.feature.keysettings
 import android.util.Base64
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.base.QkPresenter
+import com.moez.QKSMS.extensions.Optional
 import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.interactor.SetDeleteMessagesAfter
 import com.moez.QKSMS.interactor.SetEncodingScheme
@@ -36,10 +37,11 @@ class KeySettingsPresenter @Inject constructor(
 ) {
 
     var initialState: KeySettingsState? = null
-    private var conversation: Subject<Conversation> = BehaviorSubject.create()
+    private var conversation: Subject<Optional<Conversation>> = BehaviorSubject.create()
 
     init {
         if (threadId == -1L) {
+            conversation.onNext(Optional(null))
             initialState = KeySettingsState (
                 key = prefs.globalEncryptionKey.get(),
                 keySettingsIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
@@ -56,7 +58,7 @@ class KeySettingsPresenter @Inject constructor(
                 .filter { conversation -> conversation.isValid }
                 .filter { conversation -> conversation.id != 0L }
                 .subscribe { conv ->
-                    conversation.onNext(conv)
+                    conversation.onNext(Optional(conv))
 
                     initialState = KeySettingsState (
                         key = conv.encryptionKey,
@@ -144,7 +146,7 @@ class KeySettingsPresenter @Inject constructor(
                     R.id.confirm -> {
                         if (lastState.allowSave) {
                             if (lastState != initialState) {
-                                saveChanges(lastState, conv, view)
+                                saveChanges(lastState, conv.value, view)
                             }
                             view.goBack()
                         }
@@ -169,7 +171,7 @@ class KeySettingsPresenter @Inject constructor(
         view.exitWithSavingIntent
             .withLatestFrom(state, conversation) { withSaving, lastState, conv ->
                 if (withSaving) {
-                    saveChanges(lastState, conv, view)
+                    saveChanges(lastState, conv.value, view)
                 }
                 view.goBack()
             }
@@ -231,7 +233,7 @@ class KeySettingsPresenter @Inject constructor(
         return Base64.encodeToString(keyGen.generateKey().encoded, Base64.NO_WRAP)
     }
 
-    private fun saveChanges(lastState: KeySettingsState, conversation: Conversation, view: KeySettingsView) {
+    private fun saveChanges(lastState: KeySettingsState, conversation: Conversation?, view: KeySettingsView) {
         if (!lastState.allowSave) {
             return
         }
@@ -246,9 +248,9 @@ class KeySettingsPresenter @Inject constructor(
                 .takeIf { it != GLOBAL_SCHEME_INDEX }
                 ?: Conversation.SCHEME_NOT_DEF
             setEncodingScheme.execute(SetEncodingScheme.Params(threadId, schemeId))
-            if (conversation.encryptionEnabled == true && lastState.key.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
+            if (conversation?.encryptionEnabled == true && lastState.key.isBlank() && prefs.globalEncryptionKey.get().isBlank()) {
                 setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, null))
-            } else if (conversation.encryptionEnabled == null && lastState.key.isNotBlank()) {
+            } else if (conversation?.encryptionEnabled == null && lastState.key.isNotBlank()) {
                 setEncryptionEnabled.execute(SetEncryptionEnabled.Params(threadId, true))
             }
         } else {
