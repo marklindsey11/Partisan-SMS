@@ -43,12 +43,6 @@ import kotlinx.android.synthetic.main.settings_keys_activity.legacyEncryptionCon
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
 import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_encrypted_after
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_encrypted_after_pref
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_received_after
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_received_after_pref
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_sent_after
-import kotlinx.android.synthetic.main.settings_keys_activity.settings_delete_sent_after_pref
 import kotlinx.android.synthetic.main.settings_keys_activity.settings_deletion
 import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
 import javax.inject.Inject
@@ -150,18 +144,6 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
 
         val deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
         settings_deletion.visibility = if (state.isConversation) View.VISIBLE else View.GONE
-        settings_delete_encrypted_after.progress = state.deleteEncryptedAfter
-        settings_delete_encrypted_after.setTint(colors.theme().theme)
-        settings_delete_encrypted_after.thumb.setTint(colors.theme().theme)
-        settings_delete_encrypted_after_pref.summary = deleteAfterLabels[state.deleteEncryptedAfter]
-        settings_delete_received_after.progress = state.deleteReceivedAfter
-        settings_delete_received_after.setTint(colors.theme().theme)
-        settings_delete_received_after.thumb.setTint(colors.theme().theme)
-        settings_delete_received_after_pref.summary = deleteAfterLabels[state.deleteReceivedAfter]
-        settings_delete_sent_after.progress = state.deleteSentAfter
-        settings_delete_sent_after.setTint(colors.theme().theme)
-        settings_delete_sent_after.thumb.setTint(colors.theme().theme)
-        settings_delete_sent_after_pref.summary = deleteAfterLabels[state.deleteSentAfter]
     }
 
     private fun renderQr(key: String) {
@@ -189,14 +171,6 @@ class KeySettingsController : QkController<KeySettingsView, KeySettingsState, Ke
         encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)
         encodingSchemesRecycler.adapter = schemesListAdapter
 
-        val deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
-        settings_delete_encrypted_after.max = deleteAfterLabels.lastIndex
-        settings_delete_received_after.max = deleteAfterLabels.lastIndex
-        settings_delete_sent_after.max = deleteAfterLabels.lastIndex
-
-        settings_delete_encrypted_after.setOnSeekBarChangeListener(deleteEncryptedAfterListener)
-        settings_delete_received_after.setOnSeekBarChangeListener(deleteReceivedAfterListener)
-        settings_delete_sent_after.setOnSeekBarChangeListener(deleteSentAfterListener)
         keyField.addTextChangedListener(keyTextWatcher)
         copyKey.setOnClickListener { copyKey() }
         compatibilityModeDialog.adapter.setData(R.array.compatibility_mode_settings_conversation)

@@ -56,6 +56,7 @@ class ConversationInfoPresenter @Inject constructor(
     private val markUnarchived: MarkUnarchived,
     private val navigator: Navigator,
     private val permissionManager: PermissionManager,
+    private val setDeleteMessagesAfter: SetDeleteMessagesAfter,
 ) : QkPresenter<ConversationInfoView, ConversationInfoState>(
         ConversationInfoState(threadId = threadId)
 ) {
@@ -78,8 +79,6 @@ class ConversationInfoPresenter @Inject constructor(
         disposables += markArchived
         disposables += markUnarchived
         disposables += deleteConversations
-
-        val encodingSchemeDialogLabels = context.resources.getStringArray(R.array.encoding_scheme_labels)
 
         disposables += Observables
                 .combineLatest(
@@ -198,13 +197,45 @@ class ConversationInfoPresenter @Inject constructor(
         view.encryptionKeyClicks()
                 .withLatestFrom(conversation) { _, conversation -> conversation }
                 .autoDisposable(view.scope())
-                .subscribe { conversation -> view.showEncryptionKeyDialog(conversation) }
+                .subscribe { conversation -> view.showEncryptionKeySettings(conversation) }
 
+        view.deleteEncryptedAfterClicks()
+                .withLatestFrom(conversation) { _, conversation -> conversation }
+                .autoDisposable(view.scope())
+                .subscribe { conversation -> view.showDeleteEncryptedAfterDialog(conversation) }
+
+        view.deleteReceivedAfterClicks()
+                .withLatestFrom(conversation) { _, conversation -> conversation }
+                .autoDisposable(view.scope())
+                .subscribe { conversation -> view.showDeleteReceivedAfterDialog(conversation) }
+
+        view.deleteSentAfterClicks()
+                .withLatestFrom(conversation) { _, conversation -> conversation }
+                .autoDisposable(view.scope())
+                .subscribe { conversation -> view.showDeleteSentAfterDialog(conversation) }
+
+        view.deleteEncryptedAfterSelected()
+                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+                .doOnNext { (conversation, duration) ->
+                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.ENCRYPTED, duration))
+                }
+                .autoDisposable(view.scope())
+                .subscribe()
+
+        view.deleteReceivedAfterSelected()
+                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+                .doOnNext { (conversation, duration) ->
+                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.RECEIVED, duration))
+                }
+                .autoDisposable(view.scope())
+                .subscribe()
+
+        view.deleteSentAfterSelected()
+                .withLatestFrom(conversation) { duration, conversation -> Pair(conversation, duration) }
+                .doOnNext { (conversation, duration) ->
+                    setDeleteMessagesAfter.execute(SetDeleteMessagesAfter.Params(conversation.id, SetDeleteMessagesAfter.MessageType.SENT, duration))
+                }
+                .autoDisposable(view.scope())
+                .subscribe()
     }
-
-    companion object {
-        /*index of item "Use Scheme from Settings" at R.array.encoding_scheme_labels_conversation*/
-        private const val GLOBAL_SCHEME_INDEX = 3
-    }
-
 }

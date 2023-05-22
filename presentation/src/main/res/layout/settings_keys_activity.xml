@@ -129,62 +129,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.moez.QKSMS.common.widget.QkTextView
-                style="@style/PreferenceCategory"
-                android:text="@string/settings_messages_delete" />
-
-            <com.moez.QKSMS.common.widget.PreferenceView
-                android:id="@+id/settings_delete_encrypted_after_pref"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/ic_av_timer_black_24dp"
-                android:clickable="false"
-                app:title="@string/settings_delete_encrypted_after_title"
-                tools:summary="@string/settings_delete_encrypted_after_default" />
-
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/settings_delete_encrypted_after"
-                android:layout_marginHorizontal="20dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:min="0"
-                android:max="10" />
-
-            <com.moez.QKSMS.common.widget.PreferenceView
-                android:id="@+id/settings_delete_received_after_pref"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/ic_av_timer_black_24dp"
-                android:clickable="false"
-                app:title="@string/conversation_delete_received_after"
-                tools:summary="@string/settings_delete_encrypted_after_default" />
-
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/settings_delete_received_after"
-                android:layout_marginHorizontal="20dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:min="0"
-                android:max="10" />
-
-            <com.moez.QKSMS.common.widget.PreferenceView
-                android:id="@+id/settings_delete_sent_after_pref"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/ic_av_timer_black_24dp"
-                android:clickable="false"
-                app:title="@string/conversation_delete_sent_after"
-                tools:summary="@string/settings_delete_encrypted_after_default" />
-
-
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/settings_delete_sent_after"
-                android:layout_marginHorizontal="20dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:min="0"
-                android:max="10" />
-
         </androidx.appcompat.widget.LinearLayoutCompat>
     </LinearLayout>
 </ScrollView>

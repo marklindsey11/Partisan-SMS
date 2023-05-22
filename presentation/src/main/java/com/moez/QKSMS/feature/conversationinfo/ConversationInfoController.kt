@@ -78,6 +78,10 @@ class ConversationInfoController(
             }
         }
 
+        adapter.deleteEncryptedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
+        adapter.deleteSentAfterDialog.adapter.setData(R.array.delete_message_after_labels)
+        adapter.deleteReceivedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
+
         themedActivity?.theme
                 ?.autoDisposable(scope())
                 ?.subscribe { recyclerView.scrapViews() }
@@ -111,6 +115,12 @@ class ConversationInfoController(
     override fun confirmDelete(): Observable<*> = confirmDeleteSubject
     override fun mediaClicks(): Observable<Long> = adapter.mediaClicks
     override fun encryptionKeyClicks(): Observable<*> = adapter.encryptionKeyClicks
+    override fun deleteEncryptedAfterClicks(): Observable<*> = adapter.deleteEncryptedAfterClicks
+    override fun deleteReceivedAfterClicks(): Observable<*>  = adapter.deleteReceivedAfterClicks
+    override fun deleteSentAfterClicks(): Observable<*> = adapter.deleteSentAfterClicks
+    override fun deleteEncryptedAfterSelected(): Observable<Int> = adapter.deleteEncryptedAfterDialog.adapter.menuItemClicks
+    override fun deleteReceivedAfterSelected(): Observable<Int> = adapter.deleteReceivedAfterDialog.adapter.menuItemClicks
+    override fun deleteSentAfterSelected(): Observable<Int> = adapter.deleteSentAfterDialog.adapter.menuItemClicks
 
     override fun showNameDialog(name: String) = nameDialog.setText(name).show()
 
@@ -137,8 +147,11 @@ class ConversationInfoController(
                 .show()
     }
 
-    override fun showEncryptionKeyDialog(conversation: Conversation) {
+    override fun showEncryptionKeySettings(conversation: Conversation) {
         navigator.showConversationKeySettings(conversation.id)
     }
 
+    override fun showDeleteEncryptedAfterDialog(conversation: Conversation) = adapter.deleteEncryptedAfterDialog.show(activity!!)
+    override fun showDeleteReceivedAfterDialog(conversation: Conversation) = adapter.deleteReceivedAfterDialog.show(activity!!)
+    override fun showDeleteSentAfterDialog(conversation: Conversation) = adapter.deleteSentAfterDialog.show(activity!!)
 }
