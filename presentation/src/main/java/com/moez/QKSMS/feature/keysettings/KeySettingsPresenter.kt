@@ -44,7 +44,9 @@ class KeySettingsPresenter @Inject constructor(
             conversation.onNext(Optional(null))
             initialState = KeySettingsState (
                 key = prefs.globalEncryptionKey.get(),
-                keySettingsIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
+                keyEnabled = prefs.globalEncryptionKey.get().isNotEmpty(),
+                keySettingsIsShown = false,
+                resetKeyIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
                 keyValid = validateKey(prefs.globalEncryptionKey.get()),
                 encodingScheme = prefs.encodingScheme.get(),
                 legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
@@ -62,7 +64,9 @@ class KeySettingsPresenter @Inject constructor(
 
                     initialState = KeySettingsState (
                         key = conv.encryptionKey,
-                        keySettingsIsShown = conv.encryptionKey.isNotEmpty(),
+                        keyEnabled = conv.encryptionKey.isNotEmpty(),
+                        keySettingsIsShown = false,
+                        resetKeyIsShown = conv.encryptionKey.isNotEmpty(),
                         keyValid = validateKey(conv.encryptionKey),
                         encodingScheme = conv.encodingSchemeId
                             .takeIf { it != Conversation.SCHEME_NOT_DEF }
@@ -91,13 +95,23 @@ class KeySettingsPresenter @Inject constructor(
                         newState {
                             if (key.isNotBlank()) {
                                 if (initialState?.key?.isNotBlank() == true && initialState?.key == key) {
-                                    view.showDeleteKeyDialog()
+                                    view.showResetKeyDialog(true)
                                     copy()
                                 } else {
-                                    copy(keySettingsIsShown = false, key = "", keyValid = false)
+                                    copy(
+                                        key = "",
+                                        keyEnabled = false,
+                                        keySettingsIsShown = false,
+                                        keyValid = false
+                                    )
                                 }
                             } else {
-                                copy(key = generateKey(), keySettingsIsShown = true, keyValid = true)
+                                copy(
+                                    key = generateKey(),
+                                    keyEnabled = true,
+                                    keySettingsIsShown = true,
+                                    keyValid = true
+                                )
                             }
 
                         }
@@ -109,6 +123,9 @@ class KeySettingsPresenter @Inject constructor(
                         newState {
                             copy(key = generateKey(), keyValid = true)
                         }
+                    }
+                    R.id.resetKey -> {
+                        view.showResetKeyDialog(false)
                     }
                     R.id.legacyEncryption -> {
                         newState {
@@ -122,9 +139,33 @@ class KeySettingsPresenter @Inject constructor(
                 }
             }
 
-        view.keyDeletionConfirmed
+        view.keyResetConfirmed
             .autoDisposable(view.scope())
-            .subscribe { newState { copy(keySettingsIsShown = false, key = "", keyValid = false) }}
+            .subscribe {
+                newState {
+                    copy(
+                        key = "",
+                        keyEnabled = true,
+                        keySettingsIsShown = true,
+                        keyValid = false,
+                        resetKeyIsShown = false
+                    )
+                }
+            }
+
+        view.keyDisableConfirmed
+            .autoDisposable(view.scope())
+            .subscribe {
+                newState {
+                    copy(
+                        key = "",
+                        keyEnabled = false,
+                        keySettingsIsShown = false,
+                        keyValid = false,
+                        resetKeyIsShown = false
+                    )
+                }
+            }
 
         view.compatibilityModeSelected()
             .autoDisposable(view.scope())

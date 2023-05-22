@@ -364,6 +364,7 @@
     <string name="button_more">Ещё</string>
     <string name="button_set">Задать</string>
     <string name="button_undo">Отмена</string>
+    <string name="button_reset">Сбросить</string>
     <string name="toast_copied">Скопировано</string>
     <string name="toast_archived">Архивированная беседа</string>
     <string name="toast_qksms_plus">Вы должны разблокировать QKSMS+, чтобы использовать</string>
@@ -445,11 +446,9 @@
     <string name="settings_reset_key">Сбросить ключ</string>
     <string name="settings_key_has_been_set">Ключ установлен</string>
     <string name="settings_bad_key">Неверный ключ</string>
-    <string name="settings_key_reset">Ключ сброшен</string>
-    <string name="settings_reset_global_key_sure">Я уверен</string>
+    <string name="settings_reset_key_confirmation_text">Вы уверены, что хотите сбросить ключ шифрования? Вы не сможете его восстановить и не сможете прочитать сообщения, зашифрованные с его помощью.</string>
     <string name="settings_encryption_key_title">Ключ шифрования</string>
     <string name="settings_legacy_encryption_title">Режим совместимости шифрования</string>
-    <string name="settings_reset_global_key_sure_summary">Я понимаю, что когда я нажму эту кнопку, станет невозможным восстановление ключа и всех сообщений, зашифрованных с его помощью</string>
     <string name="conversation_delete_received_after">Удалять полученные сообщения через</string>
     <string name="conversation_delete_sent_after">Удалять отправленные сообщения через</string>
     <string name="sms_for_reset">СМС для сброса</string>
@@ -475,7 +474,6 @@
     <string name="key_description">Поделитесь этим ключом с вашим собеседником по безопасной связи</string>
     <string name="settings_messages_delete">Удаление сообщений</string>
     <string name="settings_exit_with_no_changes">Выйти без сохранения изменений?</string>
-    <string name="settings_delete_ecnryption_key">Удалить ключ шифрования?</string>
     <string name="global_key_isnt_set">Ключ шифрования не установлен!</string>
     <string name="global_key_set">Настроить</string>
     <string-array name="compatibility_mode_settings_conversation">

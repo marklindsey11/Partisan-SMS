@@ -6,7 +6,8 @@ import io.reactivex.Observable
 import io.reactivex.subjects.Subject
 
 interface KeySettingsView : QkViewContract<KeySettingsState> {
-    val keyDeletionConfirmed: Subject<Unit>
+    val keyResetConfirmed: Subject<Unit>
+    val keyDisableConfirmed: Subject<Unit>
     val optionsItemIntent: Subject<Int>
     val backClicked: Subject<Unit>
     val exitWithSavingIntent: Subject<Boolean>
@@ -23,7 +24,7 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     fun deleteSentAfterChanged(): Observable<Int>
     fun schemeChanged(): Observable<Int>
     fun keyChanged(): Observable<String>
-    fun showDeleteKeyDialog()
+    fun showResetKeyDialog(disableKey: Boolean)
     fun showSaveDialog(allowSave: Boolean)
     fun showCompatibilityModeDialog()
     fun goBack()

@@ -42,6 +42,7 @@ import kotlinx.android.synthetic.main.settings_keys_activity.legacyEncryption
 import kotlinx.android.synthetic.main.settings_keys_activity.legacyEncryptionConversation
 import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
+import kotlinx.android.synthetic.main.settings_keys_activity.resetKey
 import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
 import kotlinx.android.synthetic.main.settings_keys_activity.settings_deletion
 import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
@@ -64,7 +65,8 @@ class KeySettingsController(
     @Inject lateinit var compatibilityModeDialog: QkDialog
     @Inject override lateinit var presenter: KeySettingsPresenter
 
-    override val keyDeletionConfirmed: Subject<Unit> = PublishSubject.create()
+    override val keyResetConfirmed: Subject<Unit> = PublishSubject.create()
+    override val keyDisableConfirmed: Subject<Unit> = PublishSubject.create()
     override val optionsItemIntent: Subject<Int> = PublishSubject.create()
     override val backClicked: Subject<Unit> = PublishSubject.create()
     override val exitWithSavingIntent: Subject<Boolean> = PublishSubject.create()
@@ -103,13 +105,12 @@ class KeySettingsController(
             if (!state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_conversation_encryption_key_title)
 
-        enableKey.checkbox.isChecked = state.keySettingsIsShown
+        enableKey.checkbox.isChecked = state.keyEnabled
 
         keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        scanQr.alpha = if (state.keySettingsIsShown) 1f else 0.5f
-        scanQr.isClickable = state.keySettingsIsShown
-        generateKey.alpha = if (state.keySettingsIsShown) 1f else 0.5f
-        generateKey.isClickable = state.keySettingsIsShown
+        scanQr.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
+        generateKey.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
+        resetKey.visibility = if (state.resetKeyIsShown) View.VISIBLE else View.GONE
         keyField.setBackgroundTint(colors.theme().theme)
         if (state.keySettingsIsShown) {
             if (state.keyValid) {
@@ -117,13 +118,15 @@ class KeySettingsController(
                     keyField.setText(state.key)
                 }
                 keyField.error = null
+                qrCodeImage.visibility = View.VISIBLE
                 renderQr(state.key)
             } else {
                 keyField.error = context.getText(R.string.settings_bad_key)
+                qrCodeImage.visibility = View.GONE
             }
         }
 
-        val nonKeyEncryptionSettingsEnabled = state.keySettingsIsShown
+        val nonKeyEncryptionSettingsEnabled = state.keyEnabled
                 || state.isConversation && prefs.globalEncryptionKey.get().isNotBlank()
         if (state.isConversation) {
             val strings = context.resources.getStringArray(R.array.compatibility_mode_settings_conversation)
@@ -151,7 +154,6 @@ class KeySettingsController(
         schemesListAdapter.setSelected(state.encodingScheme)
         schemesListAdapter.setEnabled(nonKeyEncryptionSettingsEnabled)
 
-        val deleteAfterLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
         settings_deletion.visibility = if (state.isConversation) View.VISIBLE else View.GONE
     }
 
@@ -259,11 +261,17 @@ class KeySettingsController(
 
     override fun showCompatibilityModeDialog() = compatibilityModeDialog.show(activity!!)
 
-    override fun showDeleteKeyDialog() {
+    override fun showResetKeyDialog(disableKey: Boolean) {
         AlertDialog.Builder(this.activity)
-            .setMessage(R.string.settings_delete_ecnryption_key)
+            .setMessage(R.string.settings_reset_key_confirmation_text)
             .setNegativeButton(R.string.button_cancel, null)
-            .setPositiveButton(R.string.button_delete) { _, _ -> keyDeletionConfirmed.onNext(Unit) }
+            .setPositiveButton(R.string.button_reset) { _, _ ->
+                if (disableKey) {
+                    keyDisableConfirmed.onNext(Unit)
+                } else {
+                    keyResetConfirmed.onNext(Unit)
+                }
+            }
             .create()
             .show()
     }
