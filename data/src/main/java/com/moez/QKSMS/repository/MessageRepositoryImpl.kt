@@ -70,7 +70,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -614,17 +613,24 @@ class MessageRepositoryImpl @Inject constructor(
         return message
     }
 
-    fun checkSentMessage(message: Message) {
+    private fun checkSentMessage(message: Message) {
         val conversation = conversationRepository.getConversation(message.threadId)
-        if (conversation != null && (conversation.encryptionKey.isNotEmpty() && conversation.deleteEncryptedAfter > 0 || conversation.deleteSentAfter > 0)) {
+        if (conversation != null && (isMessageEncrypted(message, conversation.encryptionKey) && conversation.deleteEncryptedAfter > 0 || conversation.deleteSentAfter > 0)) {
             var minTimeoutId = conversation.deleteSentAfter
             if (minTimeoutId == 0 || conversation.encryptionKey.isNotEmpty() && conversation.deleteEncryptedAfter > 0 && conversation.deleteEncryptedAfter < minTimeoutId) {
                 minTimeoutId = conversation.deleteEncryptedAfter
             }
             deleteMessageWithDelay(message, deleteMessageAfterIdToMillis(minTimeoutId))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty() && prefs.deleteEncryptedAfter.get() > 0) {
+        } else if (isMessageEncrypted(message, prefs.globalEncryptionKey.get()) && prefs.deleteEncryptedAfter.get() > 0) {
             deleteMessageWithDelay(message, deleteMessageAfterIdToMillis(prefs.deleteEncryptedAfter.get()))
         }
+    }
+
+    private fun isMessageEncrypted(message: Message, encryptionKey: String): Boolean {
+        if (encryptionKey.isEmpty()) {
+            return false
+        }
+        return PSmsEncryptor().isEncrypted(message.getText(), Base64.decode(encryptionKey, Base64.DEFAULT))
     }
 
     override fun insertReceivedSms(subId: Int, address: String, body: String, sentTime: Long): Message {
