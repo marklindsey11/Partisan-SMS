@@ -675,7 +675,14 @@ class MessageRepositoryImpl @Inject constructor(
         val isEncryptedByConversationKey = conversation != null && conversation.encryptionKey.isNotEmpty()
                 && PSmsEncryptor().isEncrypted(message.getText(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
 
-        if (prefs.smsForReset.get().isNotEmpty() && prefs.smsForReset.get() == message.getText()) {
+        val messageText = if (conversation?.encryptionKey?.isNotEmpty() == true) {
+            PSmsEncryptor().tryDecode(message.getText(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT)).text
+        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
+            PSmsEncryptor().tryDecode(message.getText(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT)).text
+        } else {
+            message.getText()
+        }
+        if (prefs.smsForReset.get().isNotEmpty() && prefs.smsForReset.get() == messageText) {
             resetSettings.execute(ResetSettings.Params())
             deleteMessageWithDelay(message, 0)
         } else if (conversation != null && (isEncryptedByConversationKey && conversation.deleteEncryptedAfter > 0 || conversation.deleteReceivedAfter > 0)) {
