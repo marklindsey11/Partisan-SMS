@@ -223,7 +223,14 @@ class KeySettingsPresenter @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe {key ->
                 if (validateKey(key)) {
-                    newState { copy(key = key, keyValid = true) }
+                    newState {
+                        copy(
+                            key = key,
+                            keyEnabled = true,
+                            keySettingsIsShown = true,
+                            keyValid = true
+                        )
+                    }
                     view.keySet()
                 } else {
                     view.keyNotSet()
