@@ -142,11 +142,6 @@ class SettingsPresenter @Inject constructor(
                 .subscribe { id -> newState { copy(deleteEncryptedAfterSummary =
                 deleteEncryptedAfterDialogLabels[id], deleteEncryptedAfterId = id) } }
 
-        val encodingSchemeDialogLabels = context.resources.getStringArray(R.array.encoding_scheme_labels)
-        disposables += prefs.encodingScheme.asObservable()
-                .subscribe { id -> newState { copy(encodingSchemeSummary =
-                encodingSchemeDialogLabels[id], encodingSchemeId = id) } }
-
         val mmsSizeLabels = context.resources.getStringArray(R.array.mms_sizes)
         val mmsSizeIds = context.resources.getIntArray(R.array.mms_sizes_ids)
         disposables += prefs.mmsSize.asObservable()
