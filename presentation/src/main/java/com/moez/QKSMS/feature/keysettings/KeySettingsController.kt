@@ -80,9 +80,6 @@ class KeySettingsController(
     override val schemeChanged: Subject<Int> = PublishSubject.create()
 
     private val keyTextWatcher = KeyTextWatcher()
-    private val deleteEncryptedAfterListener = SeekBarListener()
-    private val deleteReceivedAfterListener = SeekBarListener()
-    private val deleteSentAfterListener = SeekBarListener()
     private var scannedQr: String? = null
 
     init {
@@ -269,10 +266,6 @@ class KeySettingsController(
         val text = context.getText(R.string.settings_bad_key)
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
-
-    override fun deleteEncryptedAfterChanged(): Observable<Int> = deleteEncryptedAfterListener.posChanged
-    override fun deleteReceivedAfterChanged(): Observable<Int> = deleteReceivedAfterListener.posChanged
-    override fun deleteSentAfterChanged(): Observable<Int> = deleteSentAfterListener.posChanged
     override fun keyChanged(): Observable<String> = keyTextWatcher.keyChanged
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == ScanQrRequestCode) {

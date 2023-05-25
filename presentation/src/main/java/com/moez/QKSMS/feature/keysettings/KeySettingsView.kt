@@ -20,9 +20,6 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     fun scanQrCode()
     fun keySet()
     fun keyNotSet()
-    fun deleteEncryptedAfterChanged(): Observable<Int>
-    fun deleteReceivedAfterChanged(): Observable<Int>
-    fun deleteSentAfterChanged(): Observable<Int>
     fun keyChanged(): Observable<String>
     fun showResetKeyDialog(disableKey: Boolean)
     fun showSaveDialog(allowSave: Boolean)

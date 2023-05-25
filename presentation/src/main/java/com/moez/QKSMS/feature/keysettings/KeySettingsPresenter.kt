@@ -237,24 +237,6 @@ class KeySettingsPresenter @Inject constructor(
                 }
             }
 
-        view.deleteEncryptedAfterChanged()
-            .autoDisposable(view.scope())
-            .subscribe { delay ->
-                newState { copy(deleteEncryptedAfter = delay) }
-            }
-
-        view.deleteReceivedAfterChanged()
-            .autoDisposable(view.scope())
-            .subscribe { delay ->
-                newState { copy(deleteReceivedAfter = delay) }
-            }
-
-        view.deleteSentAfterChanged()
-            .autoDisposable(view.scope())
-            .subscribe { delay ->
-                newState { copy(deleteSentAfter = delay) }
-            }
-
         view.keyChanged()
             .withLatestFrom(state) { key, lastState ->
                 if (key != lastState.key) {
