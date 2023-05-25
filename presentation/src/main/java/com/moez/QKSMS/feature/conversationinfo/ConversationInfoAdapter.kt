@@ -2,6 +2,7 @@ package com.moez.QKSMS.feature.conversationinfo
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.jakewharton.rxbinding2.view.clicks
@@ -129,6 +130,8 @@ class ConversationInfoAdapter @Inject constructor(
 
                 val labels = context.resources.getStringArray(R.array.delete_message_after_labels)
 
+                holder.conversationDeleteEncryptedAfter.visibility =
+                    if (item.encryptionKeyExist) View.VISIBLE else View.GONE
                 holder.conversationDeleteEncryptedAfter.summary = labels[item.deleteEncryptedAfter]
                 deleteEncryptedAfterDialog.adapter.selectedItem = item.deleteEncryptedAfter
 
