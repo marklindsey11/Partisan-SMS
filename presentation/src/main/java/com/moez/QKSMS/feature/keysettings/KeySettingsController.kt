@@ -6,14 +6,16 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.core.view.get
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.qrcode.QRCodeWriter
@@ -23,6 +25,7 @@ import com.moez.QKSMS.common.QkDialog
 import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
+import com.moez.QKSMS.common.util.extensions.resolveThemeColorStateList
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.widget.PreferenceView
 import com.moez.QKSMS.feature.keysettings.injection.KeySettingsModule
@@ -33,7 +36,7 @@ import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.settings_keys_activity.copyKey
 import kotlinx.android.synthetic.main.settings_keys_activity.enableKey
-import kotlinx.android.synthetic.main.settings_keys_activity.encodingSchemesRecycler
+import kotlinx.android.synthetic.main.settings_keys_activity.encodingSchemes
 import kotlinx.android.synthetic.main.settings_keys_activity.encryptionKeyCategory
 import kotlinx.android.synthetic.main.settings_keys_activity.generateKey
 import kotlinx.android.synthetic.main.settings_keys_activity.keyField
@@ -44,6 +47,10 @@ import kotlinx.android.synthetic.main.settings_keys_activity.preferences
 import kotlinx.android.synthetic.main.settings_keys_activity.qrCodeImage
 import kotlinx.android.synthetic.main.settings_keys_activity.resetKey
 import kotlinx.android.synthetic.main.settings_keys_activity.scanQr
+import kotlinx.android.synthetic.main.settings_keys_activity.schemeBase64
+import kotlinx.android.synthetic.main.settings_keys_activity.schemeBase64Cyrillic
+import kotlinx.android.synthetic.main.settings_keys_activity.schemeDefault
+import kotlinx.android.synthetic.main.settings_keys_activity.schemeRussianWords
 import kotlinx.android.synthetic.main.settings_switch_widget.view.checkbox
 import javax.inject.Inject
 
@@ -70,12 +77,12 @@ class KeySettingsController(
     override val backClicked: Subject<Unit> = PublishSubject.create()
     override val exitWithSavingIntent: Subject<Boolean> = PublishSubject.create()
     override val qrScannedIntent: Subject<String> = PublishSubject.create()
+    override val schemeChanged: Subject<Int> = PublishSubject.create()
 
     private val keyTextWatcher = KeyTextWatcher()
     private val deleteEncryptedAfterListener = SeekBarListener()
     private val deleteReceivedAfterListener = SeekBarListener()
     private val deleteSentAfterListener = SeekBarListener()
-    private lateinit var schemesListAdapter: EncryptionSchemeListAdapter
     private var scannedQr: String? = null
 
     init {
@@ -106,9 +113,9 @@ class KeySettingsController(
 
         enableKey.checkbox.isChecked = state.keyEnabled
 
-        keyInputGroup.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        scanQr.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
-        generateKey.visibility = if(state.keySettingsIsShown) View.VISIBLE else View.GONE
+        keyInputGroup.visibility = if (state.keySettingsIsShown) View.VISIBLE else View.GONE
+        scanQr.visibility = if (state.keySettingsIsShown) View.VISIBLE else View.GONE
+        generateKey.visibility = if (state.keySettingsIsShown) View.VISIBLE else View.GONE
         resetKey.visibility = if (state.resetKeyIsShown) View.VISIBLE else View.GONE
         keyField.setBackgroundTint(colors.theme().theme)
         if (state.keySettingsIsShown) {
@@ -148,10 +155,45 @@ class KeySettingsController(
             legacyEncryptionConversation.visibility = View.GONE
         }
 
-        encodingSchemesRecycler.alpha = if (nonKeyEncryptionSettingsEnabled) 1f else 0.5f
+        schemeDefault.visibility = if (state.isConversation) View.VISIBLE else View.GONE
+        renderEncodingRadioButton(schemeDefault, nonKeyEncryptionSettingsEnabled)
+        renderEncodingRadioButton(schemeBase64, nonKeyEncryptionSettingsEnabled)
+        renderEncodingRadioButton(schemeBase64Cyrillic, nonKeyEncryptionSettingsEnabled)
+        renderEncodingRadioButton(schemeRussianWords, nonKeyEncryptionSettingsEnabled)
+        encodingSchemes.check(encodingSchemes[state.encodingScheme].id)
+        if (nonKeyEncryptionSettingsEnabled) {
+            encodingSchemes.setOnCheckedChangeListener { _, id ->
+                val radioButton = encodingSchemes.findViewById<RadioButton>(id)
+                val scheme = encodingSchemes.indexOfChild(radioButton)
+                schemeChanged.onNext(scheme)
+            }
+        } else {
+            encodingSchemes.setOnCheckedChangeListener(null)
+        }
+    }
 
-        schemesListAdapter.setSelected(state.encodingScheme)
-        schemesListAdapter.setEnabled(nonKeyEncryptionSettingsEnabled)
+    private fun renderEncodingRadioButton(radioButton: RadioButton, nonKeyEncryptionSettingsEnabled: Boolean) {
+        radioButton.alpha = if (nonKeyEncryptionSettingsEnabled) 1f else 0.5f
+
+        radioButton.textSize = when (prefs.textSize.get()) {
+            Preferences.TEXT_SIZE_SMALL -> 14f
+            Preferences.TEXT_SIZE_NORMAL -> 16f
+            Preferences.TEXT_SIZE_LARGE -> 18f
+            Preferences.TEXT_SIZE_LARGER -> 20f
+            else -> 16f
+        }
+        val colorStateList = ColorStateList(
+            arrayOf(
+                intArrayOf(-android.R.attr.state_checked),
+                intArrayOf(android.R.attr.state_checked)
+            ), intArrayOf(
+                radioButton.currentHintTextColor,
+                colors.theme().theme
+            )
+        )
+        radioButton.setTextColor(context.resolveThemeColorStateList(android.R.attr.textColorSecondary))
+        radioButton.buttonTintList = colorStateList
+        radioButton.isClickable = nonKeyEncryptionSettingsEnabled
     }
 
     private fun renderQr(key: String) {
@@ -166,11 +208,7 @@ class KeySettingsController(
 
     override fun onViewCreated() {
         super.onViewCreated()
-        schemesListAdapter = EncryptionSchemeListAdapter(context, threadId != -1L, colors, prefs)
-
         preferences.postDelayed( { preferences?.animateLayoutChanges = true }, 100)
-        encodingSchemesRecycler.layoutManager = LinearLayoutManager(context)
-        encodingSchemesRecycler.adapter = schemesListAdapter
 
         keyField.addTextChangedListener(keyTextWatcher)
         copyKey.setOnClickListener { copyKey() }
@@ -235,7 +273,6 @@ class KeySettingsController(
     override fun deleteEncryptedAfterChanged(): Observable<Int> = deleteEncryptedAfterListener.posChanged
     override fun deleteReceivedAfterChanged(): Observable<Int> = deleteReceivedAfterListener.posChanged
     override fun deleteSentAfterChanged(): Observable<Int> = deleteSentAfterListener.posChanged
-    override fun schemeChanged(): Observable<Int> = schemesListAdapter.schemeChanged
     override fun keyChanged(): Observable<String> = keyTextWatcher.keyChanged
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == ScanQrRequestCode) {

@@ -455,17 +455,10 @@
     <string name="encoding_scheme">Схема кодирования</string>
     <string name="encryption_key_copied">Ключ шифрования скопирован в буфер обмена</string>
     <string name="copy">Скопировать</string>
-    <string-array name="encoding_scheme_labels">
-        <item>Base64</item>
-        <item>Кириллическая Base64</item>
-        <item>Русские слова</item>
-    </string-array>
-    <string-array name="encoding_scheme_labels_conversation">
-        <item>Base64</item>
-        <item>Кириллическая Base64</item>
-        <item>Русские слова</item>
-        <item>Использовать Схему из Настроек</item>
-    </string-array>
+    <string name="encoding_scheme_default">Использовать Схему из Настроек</string>
+    <string name="encoding_scheme_base64">Base64</string>
+    <string name="encoding_scheme_base64_cyrillic">Кириллическая Base64</string>
+    <string name="encoding_scheme_russian_words">Русские слова</string>
     <string name="show_in_task_switcher">Показывать содержимое приложения в переключателе задач</string>
     <string name="channel_id">ID канала</string>
     <string name="invalid_key">Неверный ключ</string>

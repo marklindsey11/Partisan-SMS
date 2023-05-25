@@ -268,7 +268,7 @@ class KeySettingsPresenter @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe()
 
-        view.schemeChanged()
+        view.schemeChanged
             .autoDisposable(view.scope())
             .subscribe { scheme ->
                 newState { copy(encodingScheme = scheme) }

@@ -515,17 +515,10 @@
     <string name="encoding_scheme">Encoding Scheme</string>
     <string name="encryption_key_copied">Encryption Key copied to clipboard</string>
     <string name="copy">Copy</string>
-    <string-array name="encoding_scheme_labels">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>Russian Words</item>
-    </string-array>
-    <string-array name="encoding_scheme_labels_conversation">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>Russian Words</item>
-        <item>Use Scheme from Settings</item>
-    </string-array>
+    <string name="encoding_scheme_default">Use Scheme from Settings</string>
+    <string name="encoding_scheme_base64">Base64</string>
+    <string name="encoding_scheme_base64_cyrillic">Base64 Cyrillic</string>
+    <string name="encoding_scheme_russian_words">Russian Words</string>
     <string name="show_in_task_switcher">Show App Content in Task Switcher</string>
     <string name="channel_id">Channel ID</string>
     <string name="invalid_key">Invalid Key</string>

@@ -122,13 +122,51 @@
             style="@style/PreferenceCategory"
             android:text="@string/encoding_scheme" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/encodingSchemesRecycler"
+        <RadioGroup
+            android:id="@+id/encodingSchemes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="32dp"
-            android:overScrollMode="never"
-            tools:itemCount="4"
-            tools:listitem="@layout/settings_keys_radio_button_list_item" />
+            android:layout_marginLeft="20dp">
+
+            <RadioButton
+                android:id="@+id/schemeDefault"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_default"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeBase64"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_base64"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeBase64Cyrillic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_base64_cyrillic"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeRussianWords"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_russian_words"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+        </RadioGroup>
     </LinearLayout>
 </ScrollView>

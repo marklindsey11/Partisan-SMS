@@ -12,6 +12,7 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     val backClicked: Subject<Unit>
     val exitWithSavingIntent: Subject<Boolean>
     val qrScannedIntent: Subject<String>
+    val schemeChanged: Subject<Int>
 
     fun preferenceClicks(): Observable<PreferenceView>
     fun compatibilityModeSelected(): Observable<Int>
@@ -22,7 +23,6 @@ interface KeySettingsView : QkViewContract<KeySettingsState> {
     fun deleteEncryptedAfterChanged(): Observable<Int>
     fun deleteReceivedAfterChanged(): Observable<Int>
     fun deleteSentAfterChanged(): Observable<Int>
-    fun schemeChanged(): Observable<Int>
     fun keyChanged(): Observable<String>
     fun showResetKeyDialog(disableKey: Boolean)
     fun showSaveDialog(allowSave: Boolean)
