@@ -434,17 +434,10 @@
     <string name="encoding_scheme">طرح کدگذاری</string>
     <string name="encryption_key_copied">کلید رمز کپی شد</string>
     <string name="copy">کپی</string>
-    <string-array name="encoding_scheme_labels">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>کلمات روسی</item>
-    </string-array>
-    <string-array name="encoding_scheme_labels_conversation">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>کلمات روسی</item>
-        <item>استفاده از طرح داخل تنظیمات</item>
-    </string-array>
+    <string name="encoding_scheme_default">استفاده از طرح داخل تنظیمات</string>
+    <string name="encoding_scheme_base64">Base64</string>
+    <string name="encoding_scheme_base64_cyrillic">Base64 Cyrillic</string>
+    <string name="encoding_scheme_russian_words">کلمات روسی</string>
     <string name="show_in_task_switcher">نمایش محتوای برنامه در Task Switcher</string>
     <string name="channel_id">مشخصه کانال</string>
     <string name="invalid_key">کلید نامعتبر</string>
