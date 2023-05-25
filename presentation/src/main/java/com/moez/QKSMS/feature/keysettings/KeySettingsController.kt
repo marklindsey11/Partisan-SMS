@@ -24,6 +24,7 @@ import com.moez.QKSMS.R
 import com.moez.QKSMS.common.QkDialog
 import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
+import com.moez.QKSMS.common.util.TextViewStyler
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
 import com.moez.QKSMS.common.util.extensions.resolveThemeColorStateList
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
@@ -69,6 +70,7 @@ class KeySettingsController(
     @Inject lateinit var context: Context
     @Inject lateinit var qrCodeWriter: QRCodeWriter
     @Inject lateinit var compatibilityModeDialog: QkDialog
+    @Inject lateinit var textViewStyler: TextViewStyler
     @Inject override lateinit var presenter: KeySettingsPresenter
 
     override val keyResetConfirmed: Subject<Unit> = PublishSubject.create()
@@ -141,14 +143,12 @@ class KeySettingsController(
             legacyEncryption.visibility = View.GONE
             legacyEncryptionConversation.visibility = View.VISIBLE
             legacyEncryptionConversation.summary = strings[selectedItem]
-            legacyEncryptionConversation.alpha = if (nonKeyEncryptionSettingsEnabled) 1f else 0.5f
-            legacyEncryptionConversation.isClickable = nonKeyEncryptionSettingsEnabled
+            legacyEncryptionConversation.isEnabled = nonKeyEncryptionSettingsEnabled
             compatibilityModeDialog.adapter.selectedItem = selectedItem
         } else {
             legacyEncryption.visibility = View.VISIBLE
             legacyEncryption.checkbox.isChecked = state.legacyEncryptionEnabled ?: false
-            legacyEncryption.alpha = if (nonKeyEncryptionSettingsEnabled) 1f else 0.5f
-            legacyEncryption.isClickable = nonKeyEncryptionSettingsEnabled
+            legacyEncryption.isEnabled = nonKeyEncryptionSettingsEnabled
             legacyEncryptionConversation.visibility = View.GONE
         }
 
@@ -170,27 +170,20 @@ class KeySettingsController(
     }
 
     private fun renderEncodingRadioButton(radioButton: RadioButton, nonKeyEncryptionSettingsEnabled: Boolean) {
-        radioButton.alpha = if (nonKeyEncryptionSettingsEnabled) 1f else 0.5f
-
-        radioButton.textSize = when (prefs.textSize.get()) {
-            Preferences.TEXT_SIZE_SMALL -> 14f
-            Preferences.TEXT_SIZE_NORMAL -> 16f
-            Preferences.TEXT_SIZE_LARGE -> 18f
-            Preferences.TEXT_SIZE_LARGER -> 20f
-            else -> 16f
-        }
+        radioButton.isEnabled = nonKeyEncryptionSettingsEnabled
+        textViewStyler.applyAttributes(radioButton, null)
         val colorStateList = ColorStateList(
             arrayOf(
-                intArrayOf(-android.R.attr.state_checked),
-                intArrayOf(android.R.attr.state_checked)
+                intArrayOf(-android.R.attr.state_checked, android.R.attr.state_enabled),
+                intArrayOf(android.R.attr.state_checked, android.R.attr.state_enabled),
+                intArrayOf(-android.R.attr.state_enabled)
             ), intArrayOf(
-                radioButton.currentHintTextColor,
-                colors.theme().theme
+                radioButton.hintTextColors.getColorForState(intArrayOf(-android.R.attr.state_enabled), -1),
+                colors.theme().theme,
+                radioButton.textColors.getColorForState(intArrayOf(-android.R.attr.state_enabled), -1)
             )
         )
-        radioButton.setTextColor(context.resolveThemeColorStateList(android.R.attr.textColorSecondary))
         radioButton.buttonTintList = colorStateList
-        radioButton.isClickable = nonKeyEncryptionSettingsEnabled
     }
 
     private fun renderQr(key: String) {
