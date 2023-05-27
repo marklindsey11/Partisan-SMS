@@ -76,6 +76,7 @@ class Preferences @Inject constructor(
         const val BLOCKING_MANAGER_QKSMS = 0
         const val BLOCKING_MANAGER_CC = 1
         const val BLOCKING_MANAGER_SIA = 2
+        const val BLOCKING_MANAGER_CB = 3
 
         fun getDefaultSchemeByLocale(): Int {
             return if (setOf("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "lv", "lt", "uz")
