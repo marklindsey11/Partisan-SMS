@@ -75,6 +75,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
 import android.util.Base64
+import by.cyberpartisan.psms.InvalidVersionException
 import io.reactivex.subjects.BehaviorSubject
 
 class MessagesAdapter @Inject constructor(
@@ -260,7 +261,11 @@ class MessagesAdapter @Inject constructor(
         val encryptionKey = encryptionKey.value
         val isEncrypted = if (conversation != null) {
             if (!encryptionKey.isNullOrEmpty()) {
-                PSmsEncryptor().isEncrypted(message.body, Base64.decode(encryptionKey, Base64.DEFAULT))
+                try {
+                    PSmsEncryptor().isEncrypted(message.body, Base64.decode(encryptionKey, Base64.DEFAULT))
+                } catch (_: InvalidVersionException) {
+                    false
+                }
             } else {
                 false
             }
@@ -303,7 +308,11 @@ class MessagesAdapter @Inject constructor(
         })
 
         val decryptedMessage = if (!encryptionKey.isNullOrEmpty()) {
-            PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(encryptionKey, Base64.DEFAULT))
+            try {
+                PSmsEncryptor().tryDecode(messageText.toString(), Base64.decode(encryptionKey, Base64.DEFAULT))
+            } catch (_: InvalidVersionException) {
+                PSmsMessage(messageText.toString())
+            }
         } else {
             PSmsMessage(messageText.toString())
         }

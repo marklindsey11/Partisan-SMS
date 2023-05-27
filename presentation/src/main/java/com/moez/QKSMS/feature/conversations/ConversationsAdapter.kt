@@ -28,6 +28,7 @@ import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import by.cyberpartisan.psms.InvalidVersionException
 import by.cyberpartisan.psms.PSmsEncryptor
 import by.cyberpartisan.psms.Message as PSmsMessage
 import com.moez.QKSMS.R
@@ -121,13 +122,18 @@ class ConversationsAdapter @Inject constructor(
         }
         holder.date.text = conversation.date.takeIf { it > 0 }?.let(dateFormatter::getConversationTimestamp)
 
-        val snippetMessage = if (conversation.encryptionKey.isNotEmpty()) {
-            PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
-        } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
-            PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
-        } else {
+        val snippetMessage = try {
+            if (conversation.encryptionKey.isNotEmpty()) {
+                PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(conversation.encryptionKey, Base64.DEFAULT))
+            } else if (prefs.globalEncryptionKey.get().isNotEmpty()) {
+                PSmsEncryptor().tryDecode(conversation.snippet.toString(), Base64.decode(prefs.globalEncryptionKey.get(), Base64.DEFAULT))
+            } else {
+                PSmsMessage(conversation.snippet ?: "")
+            }
+        } catch (_: InvalidVersionException) {
             PSmsMessage(conversation.snippet ?: "")
         }
+
 
         val snippetText = if (snippetMessage.channelId != null) {
             val channelIdStr = context.resources.getString(R.string.channel_id)
