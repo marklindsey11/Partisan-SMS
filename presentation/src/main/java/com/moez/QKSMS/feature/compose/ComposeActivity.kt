@@ -61,6 +61,7 @@ import com.moez.QKSMS.feature.keysettings.KeySettingsActivity
 import com.moez.QKSMS.feature.keysettings.KeySettingsController
 import com.moez.QKSMS.model.Attachment
 import com.moez.QKSMS.model.Conversation
+import com.moez.QKSMS.model.Message
 import com.moez.QKSMS.model.Recipient
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
@@ -266,7 +267,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         scheduledGroup.isVisible = state.scheduled != 0L
         scheduledTime.text = dateFormatter.getScheduledTimestamp(state.scheduled)
 
-        attachments.setVisible(state.attachments.isNotEmpty())
+        val hasMedia = state.messages?.second?.any { m -> m.isMms() && m.attachmentType != Message.AttachmentType.TEXT } ?: false
+        attachments.setVisible(state.attachments.isNotEmpty() || hasMedia)
         attachmentAdapter.data = state.attachments
 
         attach.animate().rotation(if (state.attaching) 135f else 0f).start()
