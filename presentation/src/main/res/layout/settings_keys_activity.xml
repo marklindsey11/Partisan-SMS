@@ -129,16 +129,6 @@
             android:layout_marginLeft="20dp">
 
             <RadioButton
-                android:id="@+id/schemeDefault"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="8dp"
-                android:text="@string/encoding_scheme_default"
-                android:textSize="16sp"
-                tools:tint="?android:attr/textColorSecondary" />
-
-            <RadioButton
                 android:id="@+id/schemeBase64"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -165,6 +155,16 @@
                 android:paddingHorizontal="20dp"
                 android:paddingVertical="8dp"
                 android:text="@string/encoding_scheme_russian_words"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeDefault"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_default"
                 android:textSize="16sp"
                 tools:tint="?android:attr/textColorSecondary" />
         </RadioGroup>

@@ -153,10 +153,10 @@ class KeySettingsController(
         }
 
         schemeDefault.visibility = if (state.isConversation) View.VISIBLE else View.GONE
-        renderEncodingRadioButton(schemeDefault, nonKeyEncryptionSettingsEnabled)
         renderEncodingRadioButton(schemeBase64, nonKeyEncryptionSettingsEnabled)
         renderEncodingRadioButton(schemeBase64Cyrillic, nonKeyEncryptionSettingsEnabled)
         renderEncodingRadioButton(schemeRussianWords, nonKeyEncryptionSettingsEnabled)
+        renderEncodingRadioButton(schemeDefault, nonKeyEncryptionSettingsEnabled)
         encodingSchemes.check(encodingSchemes[state.encodingScheme].id)
         if (nonKeyEncryptionSettingsEnabled) {
             encodingSchemes.setOnCheckedChangeListener { _, id ->
