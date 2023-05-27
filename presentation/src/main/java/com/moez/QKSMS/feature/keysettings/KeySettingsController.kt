@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
@@ -101,6 +102,11 @@ class KeySettingsController(
         .let { preferences -> Observable.merge(preferences) }
 
     override fun compatibilityModeSelected(): Observable<Int> = compatibilityModeDialog.adapter.menuItemClicks
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong("threadId", threadId)
+    }
 
     override fun render(state: KeySettingsState) {
         if (!state.initialized) {
