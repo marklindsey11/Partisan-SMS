@@ -456,9 +456,11 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun showEncryptionKeySettings(conversation: Conversation) {
         (threadId as BehaviorSubject?)?.value?.let { threadId ->
-            val intent = Intent(this, KeySettingsActivity::class.java)
-                .putExtra("threadId", threadId)
-            startActivityForResult(intent, SetEncryptionKeyRequestCode)
+            if (threadId != 0L) {
+                val intent = Intent(this, KeySettingsActivity::class.java)
+                    .putExtra("threadId", threadId)
+                startActivityForResult(intent, SetEncryptionKeyRequestCode)
+            }
         }
     }
 }

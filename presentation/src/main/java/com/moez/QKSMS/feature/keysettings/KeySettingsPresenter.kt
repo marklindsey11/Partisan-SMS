@@ -42,7 +42,7 @@ class KeySettingsPresenter @Inject constructor(
     private var conversation: Subject<Optional<Conversation>> = BehaviorSubject.create()
 
     init {
-        if (threadId == KeySettingsInvalidThreadId) {
+        if (threadId == KeySettingsInvalidThreadId || threadId == 0L) {
             newState { copy(hasError = true) }
         } else if (threadId == -1L) {
             conversation.onNext(Optional(null))
