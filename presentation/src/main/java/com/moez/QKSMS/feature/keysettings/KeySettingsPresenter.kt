@@ -54,7 +54,6 @@ class KeySettingsPresenter @Inject constructor(
                 keyValid = validateKey(prefs.globalEncryptionKey.get()),
                 encodingScheme = prefs.encodingScheme.get(),
                 legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
-                initialized = true,
             )
             newState { initialState!! }
         } else {
@@ -80,7 +79,6 @@ class KeySettingsPresenter @Inject constructor(
                         deleteReceivedAfter = conv.deleteReceivedAfter,
                         deleteSentAfter = conv.deleteSentAfter,
                         threadId = threadId,
-                        initialized = true,
                     )
 
                     newState { initialState!! }
@@ -225,7 +223,7 @@ class KeySettingsPresenter @Inject constructor(
 
         view.qrScannedIntent
             .autoDisposable(view.scope())
-            .subscribe {key ->
+            .subscribe { key ->
                 if (validateKey(key)) {
                     newState {
                         copy(
@@ -258,6 +256,17 @@ class KeySettingsPresenter @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe { scheme ->
                 newState { copy(encodingScheme = scheme) }
+            }
+
+        view.stateRestored
+            .autoDisposable(view.scope())
+            .subscribe { state ->
+                val unpackedState = state.value
+                if (unpackedState != null) {
+                    newState { unpackedState }
+                } else {
+                    newState { copy(initialized = true) }
+                }
             }
     }
 

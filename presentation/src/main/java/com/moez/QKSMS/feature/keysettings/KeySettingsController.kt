@@ -27,9 +27,9 @@ import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.Colors
 import com.moez.QKSMS.common.util.TextViewStyler
 import com.moez.QKSMS.common.util.extensions.animateLayoutChanges
-import com.moez.QKSMS.common.util.extensions.resolveThemeColorStateList
 import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.widget.PreferenceView
+import com.moez.QKSMS.extensions.Optional
 import com.moez.QKSMS.feature.keysettings.injection.KeySettingsModule
 import com.moez.QKSMS.injection.appComponent
 import com.moez.QKSMS.util.Preferences
@@ -81,9 +81,11 @@ class KeySettingsController(
     override val exitWithSavingIntent: Subject<Boolean> = PublishSubject.create()
     override val qrScannedIntent: Subject<String> = PublishSubject.create()
     override val schemeChanged: Subject<Int> = PublishSubject.create()
+    override val stateRestored: Subject<Optional<KeySettingsState>> = PublishSubject.create()
 
     private val keyTextWatcher = KeyTextWatcher()
     private var scannedQr: String? = null
+    private var savedState: KeySettingsState? = null
 
     init {
         appComponent
@@ -103,14 +105,21 @@ class KeySettingsController(
 
     override fun compatibilityModeSelected(): Observable<Int> = compatibilityModeDialog.adapter.menuItemClicks
 
+    override fun onRestoreViewState(view: View, savedViewState: Bundle) {
+        savedState = args.getParcelable("state")
+        super.onRestoreViewState(view, savedViewState)
+    }
+
     override fun render(state: KeySettingsState) {
+        if (!state.initialized) {
+            return
+        }
         if (state.hasError) {
             activity?.finish()
             return
         }
-        if (!state.initialized) {
-            return
-        }
+
+        args.putParcelable("state", state)
         encryptionKeyCategory.text =
             if (!state.isConversation) context.getText(R.string.settings_global_encryption_key_title)
             else context.getText(R.string.settings_conversation_encryption_key_title)
@@ -213,6 +222,8 @@ class KeySettingsController(
     override fun onAttach(view: View) {
         super.onAttach(view)
         presenter.bindIntents(this)
+        stateRestored.onNext(Optional(savedState))
+        savedState = null
         checkScannedQr()
         setTitle(R.string.settings_encryption_key_title)
         showBackButton(true)

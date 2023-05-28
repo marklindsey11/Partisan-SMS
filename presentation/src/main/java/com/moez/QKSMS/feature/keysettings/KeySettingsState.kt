@@ -1,5 +1,9 @@
 package com.moez.QKSMS.feature.keysettings
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class KeySettingsState(
     val hasError: Boolean = false,
     val initialized: Boolean = false,
@@ -14,7 +18,7 @@ data class KeySettingsState(
     val deleteEncryptedAfter: Int = 0,
     val deleteReceivedAfter: Int = 0,
     val deleteSentAfter: Int = 0,
-)
+) : Parcelable
 
 val KeySettingsState.isConversation: Boolean
     get() = threadId != -1L
