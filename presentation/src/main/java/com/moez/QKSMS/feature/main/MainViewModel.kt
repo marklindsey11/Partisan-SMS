@@ -188,14 +188,11 @@ class MainViewModel @Inject constructor(
         // Show changelog
         if (changelogManager.didUpdate()) {
             if (Locale.getDefault().language.startsWith("en")) {
-                changelogManager.markChangelogSeen()
-                /*
                 GlobalScope.launch(Dispatchers.Main) {
                     val changelog = changelogManager.getChangelog()
                     changelogManager.markChangelogSeen()
                     view.showChangelog(changelog)
                 }
-                */
             } else {
                 changelogManager.markChangelogSeen()
             }
