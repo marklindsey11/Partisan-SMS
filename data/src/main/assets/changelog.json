@@ -1,9 +1,13 @@
 [
   {
-    "versionCode": "4000",
+    "versionCode": "4004",
     "versionName": "4.0.0",
-    "fixed": [
-      "Encryption and key settings UI improvements"
+    "added": [
+      "Key exchange using QR",
+      "Disable encryption button in conversations"
+    ],
+    "improved": [
+      "Improve encryption and key settings UI"
     ]
   },
   {
