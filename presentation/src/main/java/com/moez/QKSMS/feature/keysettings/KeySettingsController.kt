@@ -58,7 +58,7 @@ import javax.inject.Inject
 
 
 class KeySettingsController(
-    val threadId: Long = -1
+    val threadId: Long = KeySettingsInvalidThreadId
 ) : QkController<KeySettingsView, KeySettingsState, KeySettingsPresenter>(), KeySettingsView {
 
     companion object {
@@ -103,12 +103,11 @@ class KeySettingsController(
 
     override fun compatibilityModeSelected(): Observable<Int> = compatibilityModeDialog.adapter.menuItemClicks
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putLong("threadId", threadId)
-    }
-
     override fun render(state: KeySettingsState) {
+        if (state.hasError) {
+            activity?.finish()
+            return
+        }
         if (!state.initialized) {
             return
         }

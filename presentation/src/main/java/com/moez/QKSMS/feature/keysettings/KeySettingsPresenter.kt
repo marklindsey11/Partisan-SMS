@@ -23,6 +23,8 @@ import javax.crypto.KeyGenerator
 import javax.inject.Inject
 import javax.inject.Named
 
+const val KeySettingsInvalidThreadId = -2L
+
 class KeySettingsPresenter @Inject constructor(
     @Named("keySettingsConversationThreadId") threadId: Long,
     private val setDeleteMessagesAfter: SetDeleteMessagesAfter,
@@ -40,7 +42,9 @@ class KeySettingsPresenter @Inject constructor(
     private var conversation: Subject<Optional<Conversation>> = BehaviorSubject.create()
 
     init {
-        if (threadId == -1L) {
+        if (threadId == KeySettingsInvalidThreadId) {
+            newState { copy(hasError = true) }
+        } else if (threadId == -1L) {
             conversation.onNext(Optional(null))
             initialState = KeySettingsState (
                 key = prefs.globalEncryptionKey.get(),
