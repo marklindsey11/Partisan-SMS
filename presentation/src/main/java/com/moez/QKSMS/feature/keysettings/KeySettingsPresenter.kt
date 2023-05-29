@@ -46,16 +46,19 @@ class KeySettingsPresenter @Inject constructor(
             newState { copy(hasError = true) }
         } else if (threadId == -1L) {
             conversation.onNext(Optional(null))
-            initialState = KeySettingsState (
-                key = prefs.globalEncryptionKey.get(),
-                keyEnabled = prefs.globalEncryptionKey.get().isNotEmpty(),
-                keySettingsIsShown = false,
-                resetKeyIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
-                keyValid = validateKey(prefs.globalEncryptionKey.get()),
-                encodingScheme = prefs.encodingScheme.get(),
-                legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
-            )
-            newState { initialState!! }
+            newState {
+                val state = copy (
+                    key = prefs.globalEncryptionKey.get(),
+                    keyEnabled = prefs.globalEncryptionKey.get().isNotEmpty(),
+                    keySettingsIsShown = false,
+                    resetKeyIsShown = prefs.globalEncryptionKey.get().isNotEmpty(),
+                    keyValid = validateKey(prefs.globalEncryptionKey.get()),
+                    encodingScheme = prefs.encodingScheme.get(),
+                    legacyEncryptionEnabled = prefs.legacyEncryptionEnabled.get(),
+                )
+                initialState = state
+                state
+            }
         } else {
             disposables += conversationRepo.getConversationAsync(threadId)
                 .asObservable()
@@ -64,24 +67,25 @@ class KeySettingsPresenter @Inject constructor(
                 .filter { conversation -> conversation.id != 0L }
                 .subscribe { conv ->
                     conversation.onNext(Optional(conv))
-
-                    initialState = KeySettingsState (
-                        key = conv.encryptionKey,
-                        keyEnabled = conv.encryptionKey.isNotEmpty(),
-                        keySettingsIsShown = false,
-                        resetKeyIsShown = conv.encryptionKey.isNotEmpty(),
-                        keyValid = validateKey(conv.encryptionKey),
-                        encodingScheme = conv.encodingSchemeId
-                            .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                            ?: GLOBAL_SCHEME_INDEX,
-                        legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
-                        deleteEncryptedAfter = conv.deleteEncryptedAfter,
-                        deleteReceivedAfter = conv.deleteReceivedAfter,
-                        deleteSentAfter = conv.deleteSentAfter,
-                        threadId = threadId,
-                    )
-
-                    newState { initialState!! }
+                    newState {
+                        val state = copy (
+                            key = conv.encryptionKey,
+                            keyEnabled = conv.encryptionKey.isNotEmpty(),
+                            keySettingsIsShown = false,
+                            resetKeyIsShown = conv.encryptionKey.isNotEmpty(),
+                            keyValid = validateKey(conv.encryptionKey),
+                            encodingScheme = conv.encodingSchemeId
+                                .takeIf { it != Conversation.SCHEME_NOT_DEF }
+                                ?: GLOBAL_SCHEME_INDEX,
+                            legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
+                            deleteEncryptedAfter = conv.deleteEncryptedAfter,
+                            deleteReceivedAfter = conv.deleteReceivedAfter,
+                            deleteSentAfter = conv.deleteSentAfter,
+                            threadId = threadId,
+                        )
+                        initialState = state
+                        state
+                    }
                 }
         }
     }
