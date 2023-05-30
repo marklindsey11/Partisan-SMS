@@ -33,12 +33,13 @@ class KeySettingsPresenter @Inject constructor(
     private val setEncodingScheme: SetEncodingScheme,
     private val setEncryptionEnabled: SetEncryptionEnabled,
     private val prefs: Preferences,
-    conversationRepo: ConversationRepository
+    private val conversationRepo: ConversationRepository
 ) : QkPresenter<KeySettingsView, KeySettingsState>(
     KeySettingsState(threadId = threadId)
 ) {
 
-    var initialState: KeySettingsState? = null
+    private var initialized = false
+    private var initialState: KeySettingsState? = null
     private var conversation: Subject<Optional<Conversation>> = BehaviorSubject.create()
 
     init {
@@ -59,6 +60,7 @@ class KeySettingsPresenter @Inject constructor(
                 initialState = state
                 state
             }
+            initialized = true
         } else {
             disposables += conversationRepo.getConversationAsync(threadId)
                 .asObservable()
@@ -66,25 +68,28 @@ class KeySettingsPresenter @Inject constructor(
                 .filter { conversation -> conversation.isValid }
                 .filter { conversation -> conversation.id != 0L }
                 .subscribe { conv ->
-                    conversation.onNext(Optional(conv))
-                    newState {
-                        val state = copy (
-                            key = conv.encryptionKey,
-                            keyEnabled = conv.encryptionKey.isNotEmpty(),
-                            keySettingsIsShown = false,
-                            resetKeyIsShown = conv.encryptionKey.isNotEmpty(),
-                            keyValid = validateKey(conv.encryptionKey),
-                            encodingScheme = conv.encodingSchemeId
-                                .takeIf { it != Conversation.SCHEME_NOT_DEF }
-                                ?: GLOBAL_SCHEME_INDEX,
-                            legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
-                            deleteEncryptedAfter = conv.deleteEncryptedAfter,
-                            deleteReceivedAfter = conv.deleteReceivedAfter,
-                            deleteSentAfter = conv.deleteSentAfter,
-                            threadId = threadId,
-                        )
-                        initialState = state
-                        state
+                    if (!initialized) {
+                        conversation.onNext(Optional(conv))
+                        newState {
+                            val state = copy (
+                                key = conv.encryptionKey,
+                                keyEnabled = conv.encryptionKey.isNotEmpty(),
+                                keySettingsIsShown = false,
+                                resetKeyIsShown = conv.encryptionKey.isNotEmpty(),
+                                keyValid = validateKey(conv.encryptionKey),
+                                encodingScheme = conv.encodingSchemeId
+                                    .takeIf { it != Conversation.SCHEME_NOT_DEF }
+                                    ?: GLOBAL_SCHEME_INDEX,
+                                legacyEncryptionEnabled = conv.legacyEncryptionEnabled,
+                                deleteEncryptedAfter = conv.deleteEncryptedAfter,
+                                deleteReceivedAfter = conv.deleteReceivedAfter,
+                                deleteSentAfter = conv.deleteSentAfter,
+                                threadId = threadId,
+                            )
+                            initialState = state
+                            state
+                        }
+                        initialized = true
                     }
                 }
         }
@@ -257,19 +262,27 @@ class KeySettingsPresenter @Inject constructor(
             .subscribe()
 
         view.schemeChanged
-            .autoDisposable(view.scope())
-            .subscribe { scheme ->
-                newState { copy(encodingScheme = scheme) }
+            .withLatestFrom(state) { scheme, state ->
+                if (state.encodingScheme != scheme) {
+                    newState { copy(encodingScheme = scheme) }
+                }
             }
+            .autoDisposable(view.scope())
+            .subscribe()
 
         view.stateRestored
             .autoDisposable(view.scope())
             .subscribe { state ->
                 val unpackedState = state.value
                 if (unpackedState != null) {
+                    if (unpackedState.threadId != -1L) {
+                        conversation.onNext(Optional(conversationRepo.getConversationAsync(unpackedState.threadId)))
+                    } else {
+                        conversation.onNext(Optional(null))
+                    }
                     newState { unpackedState }
                 } else {
-                    newState { copy(initialized = true) }
+                    newState { copy(bound = true) }
                 }
             }
     }

@@ -111,7 +111,7 @@ class KeySettingsController(
     }
 
     override fun render(state: KeySettingsState) {
-        if (!state.initialized) {
+        if (!state.bound) {
             return
         }
         if (state.hasError) {
@@ -171,7 +171,9 @@ class KeySettingsController(
         renderEncodingRadioButton(schemeBase64Cyrillic, nonKeyEncryptionSettingsEnabled)
         renderEncodingRadioButton(schemeRussianWords, nonKeyEncryptionSettingsEnabled)
         renderEncodingRadioButton(schemeDefault, nonKeyEncryptionSettingsEnabled)
-        encodingSchemes.check(encodingSchemes[state.encodingScheme].id)
+        if (state.encodingScheme >= 0) {
+            encodingSchemes.check(encodingSchemes[state.encodingScheme].id)
+        }
         if (nonKeyEncryptionSettingsEnabled) {
             encodingSchemes.setOnCheckedChangeListener { _, id ->
                 val radioButton = encodingSchemes.findViewById<RadioButton>(id)
