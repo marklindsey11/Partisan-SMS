@@ -45,6 +45,6 @@ data class ComposeState(
     val remaining: String = "",
     val subscription: SubscriptionInfoCompat? = null,
     val canSend: Boolean = false,
-    val encrypted: Boolean = false,
-    val encryptionEnabled: Boolean = true
+    val encryptionEnabled: Boolean = true,
+    val encryptionKey: String? = null
 )

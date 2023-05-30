@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -19,10 +20,18 @@
             android:contentDescription="@string/button_generate"
             android:tint="?android:attr/textColorPrimary"/>
 
-        <include layout="@layout/text_input_dialog"
+        <com.moez.QKSMS.common.widget.QkEditText
+            android:id="@+id/field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:background="@null"
+            android:maxLength="64"
+            android:padding="24dp"
+            android:singleLine="false"
+            android:textStyle="bold"
+            app:textSize="dialog"
+            tools:hint="Enter something" />
 
         <ImageButton
             android:id="@+id/btnCopyKey"

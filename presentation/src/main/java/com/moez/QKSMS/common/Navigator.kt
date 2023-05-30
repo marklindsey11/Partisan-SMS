@@ -27,15 +27,13 @@ import android.provider.ContactsContract
 import android.provider.Settings
 import android.provider.Telephony
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.core.content.FileProvider
-import com.moez.QKSMS.BuildConfig
-import com.moez.QKSMS.R
 import com.moez.QKSMS.feature.backup.BackupActivity
 import com.moez.QKSMS.feature.blocking.BlockingActivity
 import com.moez.QKSMS.feature.compose.ComposeActivity
 import com.moez.QKSMS.feature.conversationinfo.ConversationInfoActivity
 import com.moez.QKSMS.feature.gallery.GalleryActivity
+import com.moez.QKSMS.feature.keysettings.KeySettingsActivity
 import com.moez.QKSMS.feature.notificationprefs.NotificationPrefsActivity
 import com.moez.QKSMS.feature.plus.PlusActivity
 import com.moez.QKSMS.feature.scheduled.ScheduledActivity
@@ -103,6 +101,18 @@ class Navigator @Inject constructor(
             intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(images))
         }
 
+        startActivity(intent)
+    }
+
+    fun showGlobalKeysSettings() {
+        val intent = Intent(context, KeySettingsActivity::class.java)
+            .putExtra("threadId", -1L)
+        startActivity(intent)
+    }
+
+    fun showConversationKeySettings(threadId: Long) {
+        val intent = Intent(context, KeySettingsActivity::class.java)
+            .putExtra("threadId", threadId)
         startActivity(intent)
     }
 
@@ -189,6 +199,15 @@ class Navigator @Inject constructor(
             val url = "http://play.google.com/store/apps/details?id=com.moez.QKSMS"
             startActivityExternal(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
+    }
+
+    /**
+     * Launch the Play Store and display the Call Blocker listing
+     */
+    fun installCallBlocker() {
+        val url = "https://play.google.com/store/apps/details?id=com.cuiet.blockCalls"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        startActivityExternal(intent)
     }
 
     /**

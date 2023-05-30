@@ -12,7 +12,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat.getSystemService
 import com.moez.QKSMS.R
 import kotlinx.android.synthetic.main.key_input_dialog.view.*
-import kotlinx.android.synthetic.main.text_input_dialog.view.*
 import javax.crypto.KeyGenerator
 
 

@@ -76,6 +76,7 @@ class Preferences @Inject constructor(
         const val BLOCKING_MANAGER_QKSMS = 0
         const val BLOCKING_MANAGER_CC = 1
         const val BLOCKING_MANAGER_SIA = 2
+        const val BLOCKING_MANAGER_CB = 3
 
         fun getDefaultSchemeByLocale(): Int {
             return if (setOf("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "lv", "lt", "uz")
@@ -127,12 +128,12 @@ class Preferences @Inject constructor(
     val longAsMms = rxPrefs.getBoolean("longAsMms", false)
     val mmsSize = rxPrefs.getInteger("mmsSize", 300)
     val logging = rxPrefs.getBoolean("logging", false)
-    // hidden
+    // partisan
     val globalEncryptionKey = rxPrefs.getString("globalEncryptionKey", "")
     val smsForReset = rxPrefs.getString("smsForReset", "")
-    val hiddenKey = rxPrefs.getString("hiddenKey", "")
     val deleteEncryptedAfter = rxPrefs.getInteger("deleteEncryptedAfter", 0)
     val encodingScheme = rxPrefs.getInteger("encodingScheme", getDefaultSchemeByLocale())
+    val legacyEncryptionEnabled = rxPrefs.getBoolean("legacyEncryptionEnabled", false)
     val showInTaskSwitcher = rxPrefs.getBoolean("showInTaskSwitcher", true)
 
     init {

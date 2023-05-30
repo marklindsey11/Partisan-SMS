@@ -48,13 +48,10 @@ data class SettingsState(
         val maxMmsSizeSummary: String = "100KB",
         val maxMmsSizeId: Int = 100,
         val syncProgress: SyncRepository.SyncProgress = SyncRepository.SyncProgress.Idle,
-    // hidden
+        // partisan
         val globalEncryptionKey: String = "",
         val smsForReset: String = "",
-        val hiddenKey: String = "",
         val deleteEncryptedAfterSummary: String = "",
         val deleteEncryptedAfterId: Int = 0,
-        val encodingSchemeSummary: String = "",
-        val encodingSchemeId: Int = 0,
         val showInTaskSwitcher: Boolean = true
 )

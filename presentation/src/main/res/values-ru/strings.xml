@@ -270,6 +270,7 @@
     <string name="blocking_manager_title">Управление блокировкой</string>
     <string name="blocking_manager_qksms_title">P-SMS</string>
     <string name="blocking_manager_qksms_summary">Встроенная функция блокировки P-SMS</string>
+    <string name="blocking_manager_call_blocker_summary">Чёрный список с возможность работы по расписанию для блокировки сообщений со спамом, звонков с определённых и неизвестных номеров</string>
     <string name="blocking_manager_call_control_summary">Автоматическая фильтрация звонков и сообщений в одном удобном месте! Community IQ™ позволяет предотвратить получение нежелательных сообщений от известных сообществу спаммеров</string>
     <string name="blocking_manager_sia_summary">Автоматически фильтровать сообщения от нежелательных номеров, используя приложение «Should I Answer»</string>
     <string name="blocking_manager_copy_title">Скопировать заблокированные номера</string>
@@ -312,6 +313,7 @@
     <string name="qksms_plus_upgrade_donate">Разблокировать + пожертвовать %1$s %2$s</string>
     <string name="qksms_plus_thanks_title">Спасибо за поддержку QKSMS!</string>
     <string name="qksms_plus_thanks_summary">Теперь у вас есть доступ ко всем функциям QKSMS+</string>
+    <string name="qksms_plus_error">Произошла ошибка. Попробуйте ещё раз.</string>
     <string name="qksms_plus_free_title">P-SMS является бесплатным приложением. Если вы хотите поддержать развитие приложения, сделайте пожертвование.</string>
     <string name="qksms_plus_donate">Пожертвовать</string>
     <string name="qksms_plus_coming_soon">Скоро</string>
@@ -364,6 +366,7 @@
     <string name="button_more">Ещё</string>
     <string name="button_set">Задать</string>
     <string name="button_undo">Отмена</string>
+    <string name="button_reset">Сбросить</string>
     <string name="toast_copied">Скопировано</string>
     <string name="toast_archived">Архивированная беседа</string>
     <string name="toast_qksms_plus">Вы должны разблокировать QKSMS+, чтобы использовать</string>
@@ -424,7 +427,6 @@
     </string-array>
     <string name="settings_category_hidden">Партизанские настройки</string>
     <string name="conversation_encryption_key_title">Ключ шифрования</string>
-    <string name="settings_hidden_key_title">"Пароль скрытых настроек"</string>
     <string name="settings_delete_encrypted_after_title">Удалять зашифрованные сообщения через</string>
     <string name="settings_delete_encrypted_after_default">Не удалять</string>
     <string-array name="delete_message_after_labels">
@@ -440,27 +442,38 @@
         <item>1 час</item>
     </string-array>
     <string name="settings_global_encryption_key_title">Глобальный ключ шифрования</string>
+    <string name="settings_conversation_encryption_key_title">Ключ шифрования беседы</string>
+    <string name="settings_generate_new_key">Сгенерировать новый ключ</string>
+    <string name="settings_scan_qr_title">Сканировать QR-код с ключом</string>
+    <string name="settings_reset_key">Сбросить ключ</string>
+    <string name="settings_key_has_been_set">Ключ установлен</string>
+    <string name="settings_bad_key">Неверный ключ</string>
+    <string name="settings_reset_key_confirmation_text">Вы уверены, что хотите сбросить ключ шифрования? Вы не сможете его восстановить и не сможете прочитать сообщения, зашифрованные с его помощью.</string>
+    <string name="settings_encryption_key_title">Ключ шифрования</string>
+    <string name="settings_legacy_encryption_title">Режим совместимости шифрования</string>
     <string name="conversation_delete_received_after">Удалять полученные сообщения через</string>
     <string name="conversation_delete_sent_after">Удалять отправленные сообщения через</string>
     <string name="sms_for_reset">СМС для сброса</string>
     <string name="encoding_scheme">Схема кодирования</string>
     <string name="encryption_key_copied">Ключ шифрования скопирован в буфер обмена</string>
     <string name="copy">Скопировать</string>
-    <string-array name="encoding_scheme_labels">
-        <item>Base64</item>
-        <item>Кириллическая Base64</item>
-        <item>Русские слова</item>
-    </string-array>
-    <string-array name="encoding_scheme_labels_conversation">
-        <item>Base64</item>
-        <item>Кириллическая Base64</item>
-        <item>Русские слова</item>
-        <item>Использовать Схему из Настроек</item>
-    </string-array>
+    <string name="encoding_scheme_default">Использовать Схему из Настроек</string>
+    <string name="encoding_scheme_base64">Base64</string>
+    <string name="encoding_scheme_base64_cyrillic">Кириллическая Base64</string>
+    <string name="encoding_scheme_russian_words">Русские слова</string>
     <string name="show_in_task_switcher">Показывать содержимое приложения в переключателе задач</string>
     <string name="channel_id">ID канала</string>
     <string name="invalid_key">Неверный ключ</string>
     <string name="button_generate">&#128259;</string>
     <string name="drawer_plus">Пожертвовать</string>
     <string name="key_description">Поделитесь этим ключом с вашим собеседником по безопасной связи</string>
+    <string name="settings_messages_delete">Удаление сообщений</string>
+    <string name="settings_exit_with_no_changes">Выйти без сохранения изменений?</string>
+    <string name="global_key_isnt_set">Ключ шифрования не установлен!</string>
+    <string name="global_key_set">Настроить</string>
+    <string-array name="compatibility_mode_settings_conversation">
+        <item>Использовать режим из настроек</item>
+        <item>Отключён</item>
+        <item>Включён</item>
+    </string-array>
 </resources>

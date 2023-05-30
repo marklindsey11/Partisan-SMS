@@ -127,7 +127,7 @@ class SettingsPresenter @Inject constructor(
         disposables += prefs.longAsMms.asObservable()
                 .subscribe { enabled -> newState { copy(longAsMms = enabled) } }
 
-        // hidden
+        // partisan
         disposables += prefs.globalEncryptionKey.asObservable()
                 .subscribe { globalEncryptionKey -> newState { copy(globalEncryptionKey = globalEncryptionKey) } }
 
@@ -137,18 +137,10 @@ class SettingsPresenter @Inject constructor(
         disposables += prefs.showInTaskSwitcher.asObservable()
                 .subscribe { showInTaskSwitcher -> newState { copy(showInTaskSwitcher = showInTaskSwitcher) } }
 
-        disposables += prefs.hiddenKey.asObservable()
-                .subscribe { hiddenKey -> newState { copy(hiddenKey = hiddenKey) } }
-
         val deleteEncryptedAfterDialogLabels = context.resources.getStringArray(R.array.delete_message_after_labels)
         disposables += prefs.deleteEncryptedAfter.asObservable()
                 .subscribe { id -> newState { copy(deleteEncryptedAfterSummary =
                 deleteEncryptedAfterDialogLabels[id], deleteEncryptedAfterId = id) } }
-
-        val encodingSchemeDialogLabels = context.resources.getStringArray(R.array.encoding_scheme_labels)
-        disposables += prefs.encodingScheme.asObservable()
-                .subscribe { id -> newState { copy(encodingSchemeSummary =
-                encodingSchemeDialogLabels[id], encodingSchemeId = id) } }
 
         val mmsSizeLabels = context.resources.getStringArray(R.array.mms_sizes)
         val mmsSizeIds = context.resources.getIntArray(R.array.mms_sizes_ids)
@@ -226,15 +218,11 @@ class SettingsPresenter @Inject constructor(
 
                         R.id.about -> view.showAbout()
 
-                        R.id.globalEncryptionKey -> view.showGlobalEncryptionKeyDialog(prefs.globalEncryptionKey.get())
+                        R.id.globalEncryptionKey -> view.showGlobalEncryptionKeySettings()
 
                         R.id.smsForReset -> view.showSmsForResetDialog(prefs.smsForReset.get())
 
-                        R.id.hiddenKey -> view.showHiddenKeyDialog(prefs.hiddenKey.get())
-
                         R.id.deleteEncryptedAfter -> view.showDeleteEncryptedAfterDialog()
-
-                        R.id.encodingScheme -> view.showEncodingSchemeDialog()
 
                         R.id.showInTaskSwitcher -> prefs.showInTaskSwitcher.set(!prefs.showInTaskSwitcher.get())
                     }
@@ -325,7 +313,7 @@ class SettingsPresenter @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe(prefs.mmsSize::set)
 
-        // hidden
+        // partisan
 
         view.globalEncryptionKeySet()
                 .doOnNext(prefs.globalEncryptionKey::set)
@@ -337,21 +325,9 @@ class SettingsPresenter @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe()
 
-        view.hiddenKeySet()
-                .doOnNext{key -> prefs.hiddenKey.set(key.toLowerCase(Locale.ROOT)) }
-                .autoDisposable(view.scope())
-                .subscribe()
-
         view.deleteEncryptedAfterSelected()
                 .doOnNext { duration ->
                     prefs.deleteEncryptedAfter.set(duration)
-                }
-                .autoDisposable(view.scope())
-                .subscribe()
-
-        view.encodingSchemeSelected()
-                .doOnNext { scheme ->
-                    prefs.encodingScheme.set(scheme)
                 }
                 .autoDisposable(view.scope())
                 .subscribe()

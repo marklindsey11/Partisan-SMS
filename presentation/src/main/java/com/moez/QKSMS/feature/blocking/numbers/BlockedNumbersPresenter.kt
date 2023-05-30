@@ -39,13 +39,14 @@ class BlockedNumbersPresenter @Inject constructor(
         super.bindIntents(view)
 
         view.unblockAddress()
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
                 .doOnNext { id ->
                     blockingRepo.getBlockedNumber(id)?.address
                             ?.let(conversationRepo::getThreadId)
                             ?.let { threadId -> markUnblocked.execute(listOf(threadId)) }
                 }
                 .doOnNext(blockingRepo::unblockNumber)
-                .subscribeOn(Schedulers.io())
                 .autoDisposable(view.scope())
                 .subscribe()
 
@@ -55,6 +56,7 @@ class BlockedNumbersPresenter @Inject constructor(
 
         view.saveAddress()
                 .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
                 .autoDisposable(view.scope())
                 .subscribe { address -> blockingRepo.blockNumber(address) }
     }

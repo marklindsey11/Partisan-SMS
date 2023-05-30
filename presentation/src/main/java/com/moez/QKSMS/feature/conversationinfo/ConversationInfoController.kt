@@ -28,13 +28,11 @@ import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.QkChangeHandler
 import com.moez.QKSMS.common.base.QkController
 import com.moez.QKSMS.common.util.extensions.scrapViews
-import com.moez.QKSMS.common.widget.KeyInputDialog
 import com.moez.QKSMS.common.widget.TextInputDialog
 import com.moez.QKSMS.feature.blocking.BlockingDialog
 import com.moez.QKSMS.feature.conversationinfo.injection.ConversationInfoModule
 import com.moez.QKSMS.feature.themepicker.ThemePickerController
 import com.moez.QKSMS.injection.appComponent
-import com.moez.QKSMS.interactor.SetEncryptionKey
 import com.moez.QKSMS.model.Conversation
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
@@ -53,7 +51,6 @@ class ConversationInfoController(
     @Inject lateinit var blockingDialog: BlockingDialog
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var adapter: ConversationInfoAdapter
-    @Inject lateinit var setEncryptionKey: SetEncryptionKey
 
     private val nameDialog: TextInputDialog by lazy {
         TextInputDialog(activity!!, activity!!.getString(R.string.info_name), nameChangeSubject::onNext)
@@ -84,7 +81,6 @@ class ConversationInfoController(
         adapter.deleteEncryptedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
         adapter.deleteSentAfterDialog.adapter.setData(R.array.delete_message_after_labels)
         adapter.deleteReceivedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
-        adapter.encodingSchemeDialog.adapter.setData(R.array.encoding_scheme_labels_conversation)
 
         themedActivity?.theme
                 ?.autoDisposable(scope())
@@ -119,14 +115,12 @@ class ConversationInfoController(
     override fun confirmDelete(): Observable<*> = confirmDeleteSubject
     override fun mediaClicks(): Observable<Long> = adapter.mediaClicks
     override fun encryptionKeyClicks(): Observable<*> = adapter.encryptionKeyClicks
-    override fun encodingSchemeClicks(): Observable<*> = adapter.encodingSchemeClicks
     override fun deleteEncryptedAfterClicks(): Observable<*> = adapter.deleteEncryptedAfterClicks
     override fun deleteReceivedAfterClicks(): Observable<*>  = adapter.deleteReceivedAfterClicks
     override fun deleteSentAfterClicks(): Observable<*> = adapter.deleteSentAfterClicks
     override fun deleteEncryptedAfterSelected(): Observable<Int> = adapter.deleteEncryptedAfterDialog.adapter.menuItemClicks
     override fun deleteReceivedAfterSelected(): Observable<Int> = adapter.deleteReceivedAfterDialog.adapter.menuItemClicks
     override fun deleteSentAfterSelected(): Observable<Int> = adapter.deleteSentAfterDialog.adapter.menuItemClicks
-    override fun encodingSchemeSelected(): Observable<Int> = adapter.encodingSchemeDialog.adapter.menuItemClicks
 
     override fun showNameDialog(name: String) = nameDialog.setText(name).show()
 
@@ -153,18 +147,11 @@ class ConversationInfoController(
                 .show()
     }
 
-    override fun showEncryptionKeyDialog(conversation: Conversation) {
-        KeyInputDialog(activity!!, context.getString(R.string.conversation_encryption_key_title)) { key ->
-            setEncryptionKey.execute(SetEncryptionKey.Params(conversation.id, key))
-        }.show()
+    override fun showEncryptionKeySettings(conversation: Conversation) {
+        navigator.showConversationKeySettings(conversation.id)
     }
 
     override fun showDeleteEncryptedAfterDialog(conversation: Conversation) = adapter.deleteEncryptedAfterDialog.show(activity!!)
-
     override fun showDeleteReceivedAfterDialog(conversation: Conversation) = adapter.deleteReceivedAfterDialog.show(activity!!)
-
     override fun showDeleteSentAfterDialog(conversation: Conversation) = adapter.deleteSentAfterDialog.show(activity!!)
-
-    override fun showEncodingSchemeDialog(conversation: Conversation) = adapter.encodingSchemeDialog.show(requireActivity())
-
 }

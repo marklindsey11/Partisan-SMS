@@ -27,6 +27,7 @@ import com.moez.QKSMS.extensions.asObservable
 import com.moez.QKSMS.extensions.map
 import com.moez.QKSMS.extensions.removeAccents
 import com.moez.QKSMS.filter.ConversationFilter
+import com.moez.QKSMS.interactor.SetEncryptionEnabled
 import com.moez.QKSMS.mapper.CursorToConversation
 import com.moez.QKSMS.mapper.CursorToRecipient
 import com.moez.QKSMS.model.Contact
@@ -432,6 +433,27 @@ class ConversationRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun setEncryptionEnabled(threadId: Long, enabled: Boolean?) {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .equalTo(Conversation::id.name, threadId)
+                .findFirst()
+
+            realm.executeTransaction {
+                conversation?.encryptionEnabled = enabled
+            }
+        }
+    }
+
+    override fun hasConversationEncryptionKey(): Boolean {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .isNotEmpty("encryptionKey")
+                .findFirst()
+            return conversation != null
+        }
+    }
+
     override fun setEncodingScheme(threadId: Long, encodingSchemeId: Int) {
         Realm.getDefaultInstance().use { realm ->
             val conversation = realm.where(Conversation::class.java)
@@ -440,6 +462,18 @@ class ConversationRepositoryImpl @Inject constructor(
 
             realm.executeTransaction {
                 conversation?.encodingSchemeId = encodingSchemeId
+            }
+        }
+    }
+
+    override fun setLegacyEncryptionEnabled(threadId: Long, enabled: Boolean?) {
+        Realm.getDefaultInstance().use { realm ->
+            val conversation = realm.where(Conversation::class.java)
+                .equalTo(Conversation::id.name, threadId)
+                .findFirst()
+
+            realm.executeTransaction {
+                conversation?.legacyEncryptionEnabled = enabled
             }
         }
     }

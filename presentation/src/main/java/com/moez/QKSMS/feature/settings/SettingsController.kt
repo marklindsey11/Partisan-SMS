@@ -33,8 +33,8 @@ import com.jakewharton.rxbinding2.view.clicks
 import com.jakewharton.rxbinding2.view.longClicks
 import com.moez.QKSMS.BuildConfig
 import com.moez.QKSMS.R
-import com.moez.QKSMS.common.HiddenSettingsSingleton
 import com.moez.QKSMS.common.MenuItem
+import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.QkChangeHandler
 import com.moez.QKSMS.common.QkDialog
 import com.moez.QKSMS.common.base.QkController
@@ -71,12 +71,12 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
 
     @Inject lateinit var context: Context
     @Inject lateinit var colors: Colors
+    @Inject lateinit var navigator: Navigator
     @Inject lateinit var nightModeDialog: QkDialog
     @Inject lateinit var textSizeDialog: QkDialog
     @Inject lateinit var sendDelayDialog: QkDialog
     @Inject lateinit var mmsSizeDialog: QkDialog
     @Inject lateinit var deleteEncryptedAfterDialog: QkDialog
-    @Inject lateinit var encodingSchemeDialog: QkDialog
     @Inject lateinit var prefs: Preferences
 
 
@@ -97,19 +97,14 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
         TextInputDialog(activity!!, context.getString(R.string.sms_for_reset), smsForResetSubject::onNext)
     }
 
-    private val hiddenKeyDialog: TextInputDialog by lazy {
-        TextInputDialog(activity!!, context.getString(R.string.settings_hidden_key_title), hiddenKeySubject::onNext)
-    }
-
     private val viewQksmsPlusSubject: Subject<Unit> = PublishSubject.create()
     private val startTimeSelectedSubject: Subject<Pair<Int, Int>> = PublishSubject.create()
     private val endTimeSelectedSubject: Subject<Pair<Int, Int>> = PublishSubject.create()
     private val signatureSubject: Subject<String> = PublishSubject.create()
     private val autoDeleteSubject: Subject<Int> = PublishSubject.create()
-    // hidden
+    // partisan
     private val globalEncryptionKeySubject: Subject<String> = PublishSubject.create()
     private val smsForResetSubject: Subject<String> = PublishSubject.create()
-    private val hiddenKeySubject: Subject<String> = PublishSubject.create()
 
     private val progressAnimator by lazy { ObjectAnimator.ofInt(syncingProgress, "progress", 0, 0) }
 
@@ -136,9 +131,8 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
         sendDelayDialog.adapter.setData(R.array.delayed_sending_labels)
         mmsSizeDialog.adapter.setData(R.array.mms_sizes, R.array.mms_sizes_ids)
         deleteEncryptedAfterDialog.adapter.setData(R.array.delete_message_after_labels)
-        encodingSchemeDialog.adapter.setData(R.array.encoding_scheme_labels)
 
-        about.summary = context.getString(R.string.settings_version, "2.1.4", BuildConfig.VERSION_NAME, by.cyberpartisan.psms.VERSION.toString())
+        about.summary = context.getString(R.string.settings_version, BuildConfig.VERSION_NAME, "3.9.4", by.cyberpartisan.psms.VERSION.toString())
     }
 
     override fun onAttach(view: View) {
@@ -174,16 +168,12 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
 
     override fun mmsSizeSelected(): Observable<Int> = mmsSizeDialog.adapter.menuItemClicks
 
-    // hidden
+    // partisan
     override fun globalEncryptionKeySet(): Observable<String> = globalEncryptionKeySubject
 
     override fun smsForResetSet(): Observable<String> = smsForResetSubject
 
-    override fun hiddenKeySet(): Observable<String> = hiddenKeySubject
-
     override fun deleteEncryptedAfterSelected(): Observable<Int> = deleteEncryptedAfterDialog.adapter.menuItemClicks
-
-    override fun encodingSchemeSelected(): Observable<Int> = encodingSchemeDialog.adapter.menuItemClicks
 
     override fun render(state: SettingsState) {
         themePreview.setBackgroundTint(state.theme)
@@ -239,27 +229,16 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
             }
         }
 
-        // hiden
-        hidden.isVisible = HiddenSettingsSingleton.hiddenEnabled
-
-        globalEncryptionKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
+        // partisan
         globalEncryptionKey.summary = if (state.globalEncryptionKey.isNotEmpty()) "***" else ""
 
-        deleteEncryptedAfter.isVisible = HiddenSettingsSingleton.hiddenEnabled && state.globalEncryptionKey.isNotEmpty()
+        deleteEncryptedAfter.isVisible = state.globalEncryptionKey.isNotEmpty()
         deleteEncryptedAfter.summary = state.deleteEncryptedAfterSummary
         deleteEncryptedAfterDialog.adapter.selectedItem = state.deleteEncryptedAfterId
 
-        encodingScheme.isVisible = HiddenSettingsSingleton.hiddenEnabled
-        encodingScheme.summary = state.encodingSchemeSummary
-        encodingSchemeDialog.adapter.selectedItem = state.encodingSchemeId
-
-        smsForReset.isVisible = HiddenSettingsSingleton.hiddenEnabled
         smsForReset.summary = state.smsForReset
 
         showInTaskSwitcher.checkbox.isChecked = state.showInTaskSwitcher
-
-        hiddenKey.isVisible = HiddenSettingsSingleton.hiddenEnabled
-        hiddenKey.summary = state.hiddenKey
 
         if (state.showInTaskSwitcher) {
             activity!!.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -333,14 +312,10 @@ class SettingsController : QkController<SettingsView, SettingsState, SettingsPre
                 .popChangeHandler(QkChangeHandler()))
     }
 
-    override fun showGlobalEncryptionKeyDialog(globalEncryptionKey: String) = encryptionKeyDialog.setText("").show()
+    override fun showGlobalEncryptionKeySettings() = navigator.showGlobalKeysSettings()
 
     override fun showSmsForResetDialog(smsForReset: String) = smsForResetDialog.setText(smsForReset).show()
 
-    override fun showHiddenKeyDialog(hiddenKey: String) = hiddenKeyDialog.setText(hiddenKey).show()
-
     override fun showDeleteEncryptedAfterDialog() = deleteEncryptedAfterDialog.show(activity!!)
-
-    override fun showEncodingSchemeDialog() = encodingSchemeDialog.show(activity!!)
 
 }

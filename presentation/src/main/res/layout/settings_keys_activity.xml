@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contentView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground">
+
+
+    <LinearLayout
+        android:id="@+id/preferences"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="8dp">
+
+        <com.moez.QKSMS.common.widget.QkTextView
+            android:id="@+id/encryptionKeyCategory"
+            style="@style/PreferenceCategory"
+            android:text="@string/settings_global_encryption_key_title" />
+
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/enableKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_baseline_key_24"
+            app:title="@string/settings_encryption_key_title"
+            app:widget="@layout/settings_switch_widget"/>
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/scanQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/qr_code"
+            app:title="@string/settings_scan_qr_title" />
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/generateKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_sync_black_24dp"
+            app:title="@string/settings_generate_new_key" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/keyInputGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/buttons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.moez.QKSMS.common.widget.QkEditText
+                    android:id="@+id/keyField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="1"
+                    android:maxLines="3"
+                    android:maxLength="64"
+                    android:padding="24dp"
+                    android:textStyle="bold"
+                    app:textSize="dialog"
+                    android:layout_weight="1"
+                    tools:hint="Enter something" />
+
+                <ImageButton
+                    android:id="@+id/copyKey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/textTertiary"
+                    android:src="@drawable/ic_copy_24dp" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <ImageView
+                android:id="@+id/qrCodeImage"
+                android:layout_width="match_parent"
+                android:minHeight="32dp"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:contentDescription = ""
+                android:src="@drawable/qr_code"/>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/resetKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_delete_white_24dp"
+            app:title="@string/settings_reset_key"
+            android:visibility="gone"/>
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/legacyEncryption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@android:drawable/ic_partial_secure"
+            app:title="@string/settings_legacy_encryption_title"
+            app:widget="@layout/settings_switch_widget"/>
+
+        <com.moez.QKSMS.common.widget.PreferenceView
+            android:id="@+id/legacyEncryptionConversation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@android:drawable/ic_partial_secure"
+            app:title="@string/settings_legacy_encryption_title"
+            tools:summary="Use Mode from Settings" />
+
+        <com.moez.QKSMS.common.widget.QkTextView
+            style="@style/PreferenceCategory"
+            android:text="@string/encoding_scheme" />
+
+        <RadioGroup
+            android:id="@+id/encodingSchemes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp">
+
+            <RadioButton
+                android:id="@+id/schemeBase64"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_base64"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeBase64Cyrillic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_base64_cyrillic"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeRussianWords"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_russian_words"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+
+            <RadioButton
+                android:id="@+id/schemeDefault"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="@string/encoding_scheme_default"
+                android:textSize="16sp"
+                tools:tint="?android:attr/textColorSecondary" />
+        </RadioGroup>
+    </LinearLayout>
+</ScrollView>

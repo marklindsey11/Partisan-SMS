@@ -178,7 +178,7 @@
     <string name="backup_restore_stop_title">Stop restore</string>
     <string name="backup_restore_stop_message">Messages that have already been restored will remain on your device</string>
     <string name="backup_restore_dialog_title">Backups</string>
-    <string name="backup_restore_dialog_summary" translatable="false">/P-SMS/Backups</string>
+    <string name="backup_restore_dialog_summary" translatable="false">/QKSMS/Backups</string>
     <string name="backup_restore_dialog_empty">No backups found</string>
     <plurals name="backup_message_count">
         <item quantity="zero">No messages</item>
@@ -291,6 +291,8 @@
     <string name="blocking_manager_title">Blocking Manager</string>
     <string name="blocking_manager_qksms_title">P-SMS</string>
     <string name="blocking_manager_qksms_summary">Built-in blocking functionality in P-SMS</string>
+    <string name="blocking_manager_call_blocker_title" translatable="false">Call Blocker - Incoming/Outgoing</string>
+    <string name="blocking_manager_call_blocker_summary">Block spam messages, numbers &amp; unknown calls with blacklist &amp; Schedule</string>
     <string name="blocking_manager_call_control_title" translatable="false">Call Control</string>
     <string name="blocking_manager_call_control_summary">Automatically filter your calls and messages in one convenient place! Community IQ™ allows you to prevent unwanted messages from community known spammers</string>
     <string name="blocking_manager_sia_title" translatable="false">Should I Answer?</string>
@@ -413,6 +415,7 @@
     <string name="button_more">More</string>
     <string name="button_set">Set</string>
     <string name="button_undo">Undo</string>
+    <string name="button_reset">Reset</string>
 
     <string name="toast_copied">Copied</string>
     <string name="toast_archived">Archived conversation</string>
@@ -490,7 +493,6 @@
     </string-array>
     <string name="settings_category_hidden">Partisan settings</string>
     <string name="conversation_encryption_key_title">Encryption Key</string>
-    <string name="settings_hidden_key_title">Hidden Settings Password</string>
     <string name="settings_delete_encrypted_after_title">Delete Encrypted Messages After</string>
     <string name="settings_delete_encrypted_after_default">Do not delete</string>
     <string-array name="delete_message_after_labels">
@@ -506,26 +508,37 @@
         <item>1 hour</item>
     </string-array>
     <string name="settings_global_encryption_key_title">Global Encryption Key</string>
+    <string name="settings_conversation_encryption_key_title">Conversation Encryption Key</string>
+    <string name="settings_scan_qr_title">Scan QR-code with key</string>
+    <string name="settings_generate_new_key">Generate new key</string>
     <string name="conversation_delete_received_after">Delete Received Messages After</string>
     <string name="conversation_delete_sent_after">Delete Sent Messages After</string>
     <string name="sms_for_reset">SMS for Reset</string>
     <string name="encoding_scheme">Encoding Scheme</string>
     <string name="encryption_key_copied">Encryption Key copied to clipboard</string>
     <string name="copy">Copy</string>
-    <string-array name="encoding_scheme_labels">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>Russian Words</item>
-    </string-array>
-    <string-array name="encoding_scheme_labels_conversation">
-        <item>Base64</item>
-        <item>Base64 Cyrillic</item>
-        <item>Russian Words</item>
-        <item>Use Scheme from Settings</item>
-    </string-array>
+    <string name="encoding_scheme_default">Use Scheme from Settings</string>
+    <string name="encoding_scheme_base64">Base64</string>
+    <string name="encoding_scheme_base64_cyrillic">Base64 Cyrillic</string>
+    <string name="encoding_scheme_russian_words">Russian Words</string>
     <string name="show_in_task_switcher">Show App Content in Task Switcher</string>
     <string name="channel_id">Channel ID</string>
     <string name="invalid_key">Invalid Key</string>
     <string name="button_generate">&#128259;</string>
     <string name="key_description">Share this key with your interlocutor for a secure messaging</string>
+    <string name="settings_reset_key">Reset encryption key</string>
+    <string name="settings_key_has_been_set">Key has been set</string>
+    <string name="settings_bad_key">Bad key!</string>
+    <string name="settings_reset_key_confirmation_text">Are you sure you want to reset the encryption key? You won\'t be able to recover it and you won\'t be able to read messages encrypted with it.</string>
+    <string name="settings_encryption_key_title">Encryption key</string>
+    <string name="settings_legacy_encryption_title">Encryption compatibility mode</string>
+    <string name="settings_messages_delete">Messages deletion</string>
+    <string name="settings_exit_with_no_changes">Do you want to quit without saving changes?</string>
+    <string name="global_key_isnt_set">Encryption key is not set!</string>
+    <string name="global_key_set">Set key</string>
+    <string-array name="compatibility_mode_settings_conversation">
+        <item>Use Mode from Settings</item>
+        <item>Disabled</item>
+        <item>Enabled</item>
+    </string-array>
 </resources>

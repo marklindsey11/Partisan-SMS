@@ -42,14 +42,12 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxbinding2.view.clicks
-import com.jakewharton.rxbinding2.view.longClicks
 import com.jakewharton.rxbinding2.widget.textChanges
 import com.moez.QKSMS.R
 import com.moez.QKSMS.common.Navigator
 import com.moez.QKSMS.common.base.QkThemedActivity
 import com.moez.QKSMS.common.util.DateFormatter
 import com.moez.QKSMS.common.util.extensions.autoScrollToStart
-import com.moez.QKSMS.common.util.extensions.dismissKeyboard
 import com.moez.QKSMS.common.util.extensions.hideKeyboard
 import com.moez.QKSMS.common.util.extensions.resolveThemeColor
 import com.moez.QKSMS.common.util.extensions.scrapViews
@@ -57,23 +55,59 @@ import com.moez.QKSMS.common.util.extensions.setBackgroundTint
 import com.moez.QKSMS.common.util.extensions.setTint
 import com.moez.QKSMS.common.util.extensions.setVisible
 import com.moez.QKSMS.common.util.extensions.showKeyboard
-import com.moez.QKSMS.common.widget.KeyInputDialog
 import com.moez.QKSMS.feature.compose.editing.ChipsAdapter
 import com.moez.QKSMS.feature.contacts.ContactsActivity
+import com.moez.QKSMS.feature.keysettings.KeySettingsActivity
+import com.moez.QKSMS.feature.keysettings.KeySettingsController
 import com.moez.QKSMS.model.Attachment
 import com.moez.QKSMS.model.Conversation
+import com.moez.QKSMS.model.Message
 import com.moez.QKSMS.model.Recipient
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import kotlinx.android.synthetic.main.compose_activity.*
+import kotlinx.android.synthetic.main.compose_activity.attach
+import kotlinx.android.synthetic.main.compose_activity.attaching
+import kotlinx.android.synthetic.main.compose_activity.attachingBackground
+import kotlinx.android.synthetic.main.compose_activity.attachments
+import kotlinx.android.synthetic.main.compose_activity.camera
+import kotlinx.android.synthetic.main.compose_activity.cameraLabel
+import kotlinx.android.synthetic.main.compose_activity.chips
+import kotlinx.android.synthetic.main.compose_activity.composeBar
+import kotlinx.android.synthetic.main.compose_activity.contact
+import kotlinx.android.synthetic.main.compose_activity.contactLabel
+import kotlinx.android.synthetic.main.compose_activity.contentView
+import kotlinx.android.synthetic.main.compose_activity.counter
+import kotlinx.android.synthetic.main.compose_activity.gallery
+import kotlinx.android.synthetic.main.compose_activity.galleryLabel
+import kotlinx.android.synthetic.main.compose_activity.loading
+import kotlinx.android.synthetic.main.compose_activity.message
+import kotlinx.android.synthetic.main.compose_activity.messageBackground
+import kotlinx.android.synthetic.main.compose_activity.messageList
+import kotlinx.android.synthetic.main.compose_activity.messagesEmpty
+import kotlinx.android.synthetic.main.compose_activity.schedule
+import kotlinx.android.synthetic.main.compose_activity.scheduleLabel
+import kotlinx.android.synthetic.main.compose_activity.scheduledCancel
+import kotlinx.android.synthetic.main.compose_activity.scheduledGroup
+import kotlinx.android.synthetic.main.compose_activity.scheduledTime
+import kotlinx.android.synthetic.main.compose_activity.send
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroup
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroupBackground
+import kotlinx.android.synthetic.main.compose_activity.sendAsGroupSwitch
+import kotlinx.android.synthetic.main.compose_activity.sim
+import kotlinx.android.synthetic.main.compose_activity.simIndex
+import kotlinx.android.synthetic.main.compose_activity.toolbar
+import kotlinx.android.synthetic.main.compose_activity.toolbarSubtitle
+import kotlinx.android.synthetic.main.compose_activity.toolbarTitle
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
-import kotlin.collections.HashMap
 
 class ComposeActivity : QkThemedActivity(), ComposeView {
 
@@ -82,6 +116,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         private const val TakePhotoRequestCode = 1
         private const val AttachPhotoRequestCode = 2
         private const val AttachContactRequestCode = 3
+        private const val SetEncryptionKeyRequestCode = 202
 
         private const val CameraDestinationKey = "camera_destination"
     }
@@ -119,7 +154,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val sendIntent by lazy { send.clicks() }
     override val viewQksmsPlusIntent: Subject<Unit> = PublishSubject.create()
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
-    override val setEncryptionKeyIntent: Subject<Pair<Conversation, String>> = PublishSubject.create()
+    override val encryptionKeySetIntent: Subject<Unit> = PublishSubject.create()
 
     private val viewModel by lazy { ViewModelProviders.of(this, viewModelFactory)[ComposeViewModel::class.java] }
 
@@ -152,12 +187,12 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         message.supportsInputContent = true
 
         theme
-                .doOnNext { loading.setTint(it.theme) }
-                .doOnNext { attach.setBackgroundTint(it.theme) }
-                .doOnNext { attach.setTint(it.textPrimary) }
-                .doOnNext { messageAdapter.theme = it }
-                .autoDisposable(scope())
-                .subscribe()
+            .doOnNext { loading.setTint(it.theme) }
+            .doOnNext { attach.setBackgroundTint(it.theme) }
+            .doOnNext { attach.setTint(it.textPrimary) }
+            .doOnNext { messageAdapter.theme = it }
+            .autoDisposable(scope())
+            .subscribe()
 
         window.callback = ComposeWindowCallback(window.callback, this)
 
@@ -193,7 +228,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
         toolbarSubtitle.setVisible(state.query.isNotEmpty())
         toolbarSubtitle.text = getString(R.string.compose_subtitle_results, state.searchSelectionPosition,
-                state.searchResults)
+            state.searchResults)
 
         toolbarTitle.setVisible(!state.editingMode)
         chips.setVisible(state.editingMode)
@@ -214,8 +249,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         toolbar.menu.findItem(R.id.clear)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
-        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled && state.encrypted
-        toolbar.menu.findItem(R.id.raw)?.isVisible = !(state.encryptionEnabled && state.encrypted)
+        toolbar.menu.findItem(R.id.encrypted)?.isVisible = state.encryptionEnabled
+        toolbar.menu.findItem(R.id.raw)?.isVisible = !state.encryptionEnabled
 
         chipsAdapter.data = state.selectedChips
 
@@ -225,13 +260,15 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         sendAsGroupSwitch.isChecked = state.sendAsGroup
 
         messageList.setVisible(!state.editingMode || state.sendAsGroup || state.selectedChips.size == 1)
+        messageAdapter.encryptionKey.onNext(state.encryptionKey ?: "")
         messageAdapter.data = state.messages
         messageAdapter.highlight = state.searchSelectionId
 
         scheduledGroup.isVisible = state.scheduled != 0L
         scheduledTime.text = dateFormatter.getScheduledTimestamp(state.scheduled)
 
-        attachments.setVisible(state.attachments.isNotEmpty())
+        val hasMedia = state.messages?.second?.any { m -> m.isMms() && m.attachmentType != Message.AttachmentType.TEXT } ?: false
+        attachments.setVisible(state.attachments.isNotEmpty() || hasMedia)
         attachmentAdapter.data = state.attachments
 
         attach.animate().rotation(if (state.attaching) 135f else 0f).start()
@@ -247,7 +284,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         send.isEnabled = state.canSend
         send.imageAlpha = if (state.canSend) 255 else 128
 
-        if (state.encrypted) {
+        if (state.encryptionEnabled) {
             message.imeOptions = message.imeOptions or IME_FLAG_NO_PERSONALIZED_LEARNING
         } else {
             message.imeOptions = message.imeOptions and IME_FLAG_NO_PERSONALIZED_LEARNING.inv()
@@ -258,10 +295,10 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun showDetails(details: String) {
         AlertDialog.Builder(this)
-                .setTitle(R.string.compose_details_title)
-                .setMessage(details)
-                .setCancelable(true)
-                .show()
+            .setTitle(R.string.compose_details_title)
+            .setMessage(details)
+            .setCancelable(true)
+            .show()
     }
 
     override fun requestDefaultSms() {
@@ -274,8 +311,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestSmsPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.READ_SMS,
-                Manifest.permission.SEND_SMS), 0)
+            Manifest.permission.READ_SMS,
+            Manifest.permission.SEND_SMS), 0)
     }
 
     override fun requestDatePicker() {
@@ -289,7 +326,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 calendar.set(Calendar.MINUTE, minute)
                 scheduleSelectedIntent.onNext(calendar.timeInMillis)
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(this))
-                    .show()
+                .show()
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
 
         // On some devices, the keyboard can cover the date picker
@@ -298,7 +335,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestContact() {
         val intent = Intent(Intent.ACTION_PICK)
-                .setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
+            .setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
 
         startActivityForResult(Intent.createChooser(intent, null), AttachContactRequestCode)
     }
@@ -307,8 +344,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         message.hideKeyboard()
         val serialized = HashMap(chips.associate { chip -> chip.address to chip.contact?.lookupKey })
         val intent = Intent(this, ContactsActivity::class.java)
-                .putExtra(ContactsActivity.SharingKey, sharing)
-                .putExtra(ContactsActivity.ChipsKey, serialized)
+            .putExtra(ContactsActivity.SharingKey, sharing)
+            .putExtra(ContactsActivity.ChipsKey, serialized)
         startActivityForResult(intent, SelectContactRequestCode)
     }
 
@@ -324,21 +361,21 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun requestCamera() {
         cameraDestination = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                .let { timestamp -> ContentValues().apply { put(MediaStore.Images.Media.TITLE, timestamp) } }
-                .let { cv -> contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv) }
+            .let { timestamp -> ContentValues().apply { put(MediaStore.Images.Media.TITLE, timestamp) } }
+            .let { cv -> contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv) }
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                .putExtra(MediaStore.EXTRA_OUTPUT, cameraDestination)
+            .putExtra(MediaStore.EXTRA_OUTPUT, cameraDestination)
         startActivityForResult(Intent.createChooser(intent, null), TakePhotoRequestCode)
     }
 
     override fun requestGallery() {
         val intent = Intent(Intent.ACTION_PICK)
-                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                .putExtra(Intent.EXTRA_LOCAL_ONLY, false)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .setType("image/*")
+            .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            .putExtra(Intent.EXTRA_LOCAL_ONLY, false)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .setType("image/*")
         startActivityForResult(Intent.createChooser(intent, null), AttachPhotoRequestCode)
     }
 
@@ -349,9 +386,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun scrollToMessage(id: Long) {
         messageAdapter.data?.second
-                ?.indexOfLast { message -> message.id == id }
-                ?.takeIf { position -> position != -1 }
-                ?.let(messageList::scrollToPosition)
+            ?.indexOfLast { message -> message.id == id }
+            ?.takeIf { position -> position != -1 }
+            ?.let(messageList::scrollToPosition)
     }
 
     override fun showQksmsPlusSnackbar(message: Int) {
@@ -380,21 +417,26 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         when {
             requestCode == SelectContactRequestCode -> {
                 chipsSelectedIntent.onNext(data?.getSerializableExtra(ContactsActivity.ChipsKey)
-                        ?.let { serializable -> serializable as? HashMap<String, String?> }
-                        ?: hashMapOf())
+                    ?.let { serializable -> serializable as? HashMap<String, String?> }
+                    ?: hashMapOf())
             }
             requestCode == TakePhotoRequestCode && resultCode == Activity.RESULT_OK -> {
                 cameraDestination?.let(attachmentSelectedIntent::onNext)
             }
             requestCode == AttachPhotoRequestCode && resultCode == Activity.RESULT_OK -> {
                 data?.clipData?.itemCount
-                        ?.let { count -> 0 until count }
-                        ?.mapNotNull { i -> data.clipData?.getItemAt(i)?.uri }
-                        ?.forEach(attachmentSelectedIntent::onNext)
-                        ?: data?.data?.let(attachmentSelectedIntent::onNext)
+                    ?.let { count -> 0 until count }
+                    ?.mapNotNull { i -> data.clipData?.getItemAt(i)?.uri }
+                    ?.forEach(attachmentSelectedIntent::onNext)
+                    ?: data?.data?.let(attachmentSelectedIntent::onNext)
             }
             requestCode == AttachContactRequestCode && resultCode == Activity.RESULT_OK -> {
                 data?.data?.let(contactSelectedIntent::onNext)
+            }
+            requestCode == SetEncryptionKeyRequestCode && resultCode == Activity.RESULT_OK -> {
+                data?.getStringExtra(KeySettingsController.EncryptionKeyKey)?.let {
+                    encryptionKeySetIntent.onNext(Unit)
+                }
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
@@ -412,9 +454,13 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
     override fun onBackPressed() = backPressedIntent.onNext(Unit)
 
-    override fun showEncryptionKeyDialog(conversation: Conversation) {
-        KeyInputDialog(this, getString(R.string.conversation_encryption_key_title)) { key ->
-            setEncryptionKeyIntent.onNext(Pair(conversation, key))
-        }.show()
+    override fun showEncryptionKeySettings(conversation: Conversation) {
+        (threadId as BehaviorSubject?)?.value?.let { threadId ->
+            if (threadId != 0L) {
+                val intent = Intent(this, KeySettingsActivity::class.java)
+                    .putExtra("threadId", threadId)
+                startActivityForResult(intent, SetEncryptionKeyRequestCode)
+            }
+        }
     }
 }

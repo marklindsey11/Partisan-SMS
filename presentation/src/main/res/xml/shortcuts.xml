@@ -28,9 +28,9 @@
         android:shortcutShortLabel="@string/shortcut_compose_short_label">
 
         <intent
-            android:action="com.moez.QKSMS.START"
+            android:action="org.cpartisans.psms.START"
             android:targetClass="com.moez.QKSMS.feature.compose.ComposeActivity"
-            android:targetPackage="com.moez.QKSMS" />
+            android:targetPackage="org.cpartisans.psms" />
 
         <categories android:name="android.shortcut.conversation" />
 

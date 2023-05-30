@@ -36,7 +36,7 @@ class QkRealmMigration @Inject constructor(
 ) : RealmMigration {
 
     companion object {
-        const val SchemaVersion: Long = 12
+        const val SchemaVersion: Long = 13
     }
 
     @SuppressLint("ApplySharedPref")
@@ -239,6 +239,22 @@ class QkRealmMigration @Inject constructor(
                 ?.addField("encodingSchemeId", Int::class.java)
                 ?.transform { part ->
                     part.setInt("encodingSchemeId", -1 /*not def*/)
+                }
+
+            version++
+        }
+
+        if (version == 12L) {
+            realm.schema.get("Conversation")
+                ?.addField("encryptionEnabled", Boolean::class.java)
+                ?.setNullable("encryptionEnabled", true)
+                ?.transform { part ->
+                    part.setNull("encryptionEnabled")
+                }
+                ?.addField("legacyEncryptionEnabled", Boolean::class.java)
+                ?.setNullable("legacyEncryptionEnabled", true)
+                ?.transform { part ->
+                    part.setBoolean("legacyEncryptionEnabled", false)
                 }
 
             version++
