@@ -4,10 +4,11 @@
     "versionName": "4.0.0",
     "added": [
       "Key exchange using QR",
-      "Disable encryption button in conversations"
+      "Added a button to turn off encryption in conversations"
     ],
     "improved": [
-      "Improve encryption and key settings UI"
+      "Improved encryption and key settings UI",
+      "Removed Hidden Settings Password"
     ]
   },
   {
